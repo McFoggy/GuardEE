@@ -1,72 +1,110 @@
 package fr.brouillard.oss.ee.fault.tolerance.interceptors;
 
+import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
+import org.eclipse.microprofile.faulttolerance.exceptions.FaultToleranceException;
+import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.interceptor.InvocationContext;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.function.Function;
+import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-import javax.interceptor.InvocationContext;
-
-import org.eclipse.microprofile.faulttolerance.exceptions.FaultToleranceException;
-
-import fr.brouillard.oss.ee.fault.tolerance.model.RetryConfiguration;
-
+@ApplicationScoped
 public class FaultToleranceInvoker {
-    private Random randomizer;
+    private Random rnd;
 
-    @PostConstruct
-    void initialize() {
-        randomizer = new Random(System.nanoTime());
+    @Inject
+    TimeoutManager tm;
+
+    public FaultToleranceInvoker() {
     }
 
-    public Function<InvocationContext, Object> retry(RetryConfiguration retryCfg) {
-        return ic -> {
+    @PostConstruct
+    public void initialize() {
+        rnd = new Random(System.nanoTime());
+    }
+
+    public Object invoke(InvocationConfiguration cfg, InvocationContext context) {
             boolean ended = true;
             int retry = 0;
             Throwable latestFailure = null;
 
-            Instant start = Clock.systemDefaultZone().instant();
+            Clock clock = Clock.systemUTC();
+            Instant start = clock.instant();
+            Instant until = cfg.getDurationUnit().addTo(start, cfg.getMaxDuration());
 
-            // TODO maxDuration
-
-            long delayInMillis = computeDelayInMillis(retryCfg, start);
+            long delayInMillis = computeDelayInMillis(cfg, start);
             long jitterInMillis = 0;
 
             do {
-                if (retry > 0) {
-                    jitterInMillis = computeJitterInMillis(retryCfg, start);
+                if (retry > 0 && cfg.getMaxRetries() > 0) {
+                    jitterInMillis = computeJitterInMillis(cfg, start);
                     try {
                         Thread.sleep(delayInMillis+jitterInMillis);
                     } catch (InterruptedException e) {}
                 }
-                try {
-                    return ic.proceed();
-                } catch (Throwable t) {
-                    latestFailure = t;
-                    if (isAssignableToAnyOf(retryCfg.getAbortOn(), t) && !isAssignableToAnyOf(retryCfg.getRetryOn(), t)) {
-                        break;
-                    }
+                String uuid = UUID.randomUUID().toString();
+
+                Instant now = clock.instant();
+                if (now.isAfter(until)) {
+                    break;
                 }
 
-                ended = (++retry < retryCfg.getMaxRetries());
+                try {
+                    if (cfg.getTimeout() > 0) {
+                        Thread executingThread = Thread.currentThread();
+                        long timeoutDelay = computeTimeoutInMillis(cfg, now);
+                        tm.register(uuid, timeoutDelay, executingThread);
+                    }
+
+                    Object value = context.proceed();
+                    if ((cfg.getTimeout() == 0) || !tm.hasReachedTimeout(uuid)) {
+                        return value;
+                    }
+                    latestFailure = new TimeoutException();
+                } catch (Throwable t) {
+                    latestFailure = t;
+
+                    // AbortOn has priority on RetryOn
+                    if (isAssignableToAnyOf(cfg.getAbortOn(), t)) {
+                        break;
+                    }
+                    if (!isAssignableToAnyOf(cfg.getRetryOn(), t)) {
+                        break;
+                    }
+                } finally {
+                    tm.cancelTimerByUUID(uuid);
+                }
+
+                retry++;
+                ended = (retry > cfg.getMaxRetries());
             } while (!ended);
 
-            throw new FaultToleranceException(latestFailure);
-        };
+        if (latestFailure instanceof FaultToleranceException) {
+            throw (FaultToleranceException)latestFailure;
+        }
+        throw new FaultToleranceException(latestFailure);
     }
 
     private boolean isAssignableToAnyOf(Class<? extends Throwable>[] abortOn, Throwable t) {
         return Arrays.asList(abortOn).stream().filter(c -> c.isInstance(t)).findFirst().isPresent();
     }
 
-    private long computeJitterInMillis(RetryConfiguration retryCfg, Instant baseInstant) {
-        return Duration.between(baseInstant, retryCfg.getJitterDelayUnit().addTo(baseInstant, randomizer.nextInt((int)retryCfg.getJitter()))).toMillis();
+    private long computeJitterInMillis(InvocationConfiguration cfg, Instant baseInstant) {
+        return Duration.between(baseInstant, cfg.getJitterDelayUnit().addTo(baseInstant, rnd.nextInt((int)cfg.getJitter()))).toMillis();
     }
 
-    private long computeDelayInMillis(RetryConfiguration retryCfg, Instant baseInstant) {
-        return Duration.between(baseInstant, retryCfg.getDelayUnit().addTo(baseInstant, retryCfg.getDelay())).toMillis();
+    private long computeTimeoutInMillis(InvocationConfiguration cfg, Instant baseInstant) {
+        return Duration.between(baseInstant, cfg.getTimeoutUnit().addTo(baseInstant, cfg.getTimeout())).toMillis();
+    }
+
+    private long computeDelayInMillis(InvocationConfiguration cfg, Instant baseInstant) {
+        return Duration.between(baseInstant, cfg.getDelayUnit().addTo(baseInstant, cfg.getDelay())).toMillis();
     }
 }

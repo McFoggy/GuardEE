@@ -9,10 +9,14 @@ import java.util.function.BiConsumer;
 import javax.enterprise.inject.Vetoed;
 
 import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 
 public class FaultToleranceAnnotationsResolver {
     <E extends Member & AnnotatedElement> Of<Retry> retry(Class<?> bean, E element) {
         return resolverOf(bean, element, Retry.class);
+    }
+    <E extends Member & AnnotatedElement> Of<Timeout> timeout(Class<?> bean, E element) {
+        return resolverOf(bean, element, Timeout.class);
     }
     private <E extends Member & AnnotatedElement, T extends Annotation> Of<T> resolverOf(Class<?> bean, E element, Class<T> ftAnnotation) {
         if (element.isAnnotationPresent(ftAnnotation))

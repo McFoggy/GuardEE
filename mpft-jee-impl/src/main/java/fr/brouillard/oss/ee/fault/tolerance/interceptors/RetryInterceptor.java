@@ -10,8 +10,9 @@ import javax.interceptor.InvocationContext;
 
 import org.eclipse.microprofile.faulttolerance.Retry;
 
-import fr.brouillard.oss.ee.fault.tolerance.model.RetryConfiguration;
+import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
 import fr.brouillard.oss.ee.fault.tolerance.Configurator;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 
 @Retry
 @Interceptor
@@ -33,12 +34,18 @@ public class RetryInterceptor {
     @AroundInvoke
     public Object executeFaultTolerance(InvocationContext invocationContext) throws Exception {
         FaultToleranceAnnotationsResolver.Of<Retry> retry = annotationResolver.retry(bean.getBeanClass(), invocationContext.getMethod());
+        FaultToleranceAnnotationsResolver.Of<Timeout> timeout = annotationResolver.timeout(bean.getBeanClass(), invocationContext.getMethod());
+
+        InvocationConfiguration ic = InvocationConfiguration.any();
 
         if (retry.isPresent()) {
-            String name = retry.name();
-            RetryConfiguration retryCfg = cfg.retry(name, RetryConfiguration.of(retry.annotation()));
+            ic = cfg.retry(retry.name(), ic.with(retry.annotation()));
+        }
 
-            return invoker.retry(retryCfg).apply(invocationContext);
-        } else return invocationContext.proceed();
+        if (timeout.isPresent()) {
+            ic = cfg.timeout(timeout.name(), ic.with(timeout.annotation()));
+        }
+
+        return invoker.invoke(ic, invocationContext);
     }
 }

@@ -28,77 +28,9 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>integration</id>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <echo>version calculated: ${jgitver.calculated_version}</echo>
-                                <echo>dirty: ${jgitver.dirty}</echo>
-                                <echo>head_committer_name: ${jgitver.head_committer_name}</echo>
-                                <echo>head_commiter_email: ${jgitver.head_commiter_email}</echo>
-                                <echo>head_commit_datetime: ${jgitver.head_commit_datetime}</echo>
-                                <echo>git_sha1_full: ${jgitver.git_sha1_full}</echo>
-                                <echo>git_sha1_8: ${jgitver.git_sha1_8}</echo>
-                                <echo>branch_name: ${jgitver.branch_name}</echo>
-                                <echo>head_tags: ${jgitver.head_tags}</echo>
-                                <echo>head_annotated_tags: ${jgitver.head_annotated_tags}</echo>
-                                <echo>head_lightweight_tags: ${jgitver.head_lightweight_tags}</echo>
-                                <echo>base_tag: ${jgitver.base_tag}</echo>
-                                <echo>all_tags: ${jgitver.all_tags}</echo>
-                                <echo>all_annotated_tags: ${jgitver.all_annotated_tags}</echo>
-                                <echo>all_lightweight_tags: ${jgitver.all_lightweight_tags}</echo>
-                                <echo>all_version_tags: ${jgitver.all_version_tags}</echo>
-                                <echo>all_version_annotated_tags: ${jgitver.all_version_annotated_tags}</echo>
-                                <echo>all_version_lightweight_tags: ${jgitver.all_version_lightweight_tags}</echo>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <echo>version calculated: ${jgitver.calculated_version}</echo>
-                                <echo>dirty: ${jgitver.dirty}</echo>
-                                <echo>head_committer_name: ${jgitver.head_committer_name}</echo>
-                                <echo>head_commiter_email: ${jgitver.head_commiter_email}</echo>
-                                <echo>head_commit_datetime: ${jgitver.head_commit_datetime}</echo>
-                                <echo>git_sha1_full: ${jgitver.git_sha1_full}</echo>
-                                <echo>git_sha1_8: ${jgitver.git_sha1_8}</echo>
-                                <echo>branch_name: ${jgitver.branch_name}</echo>
-                                <echo>head_tags: ${jgitver.head_tags}</echo>
-                                <echo>head_annotated_tags: ${jgitver.head_annotated_tags}</echo>
-                                <echo>head_lightweight_tags: ${jgitver.head_lightweight_tags}</echo>
-                                <echo>base_tag: ${jgitver.base_tag}</echo>
-                                <echo>all_tags: ${jgitver.all_tags}</echo>
-                                <echo>all_annotated_tags: ${jgitver.all_annotated_tags}</echo>
-                                <echo>all_lightweight_tags: ${jgitver.all_lightweight_tags}</echo>
-                                <echo>all_version_tags: ${jgitver.all_version_tags}</echo>
-                                <echo>all_version_annotated_tags: ${jgitver.all_version_annotated_tags}</echo>
-                                <echo>all_version_lightweight_tags: ${jgitver.all_version_lightweight_tags}</echo>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${version.plugin.failsafe}</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <mpft.jee.version>JGITVER-${jgitver.calculated_version}</mpft.jee.version>
-                    </systemPropertyVariables>
-                </configuration>
                 <executions>
                     <execution>
                         <id>tests</id>
@@ -108,6 +40,7 @@
                         </goals>
                         <configuration>
                             <systemPropertyVariables>
+                                <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
                                 <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
                                 <chameleon.distribution.dir>${project.build.directory}/distribution</chameleon.distribution.dir>
                             </systemPropertyVariables>
@@ -141,13 +74,6 @@
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
-            <!--<dependency>-->
-                <!--<groupId>org.jboss.shrinkwrap</groupId>-->
-                <!--<artifactId>shrinkwrap-bom</artifactId>-->
-                <!--<version>${version.shrinkwrap}</version>-->
-                <!--<type>pom</type>-->
-                <!--<scope>import</scope>-->
-            <!--</dependency>-->
             <dependency>
                 <groupId>org.jboss.shrinkwrap.resolver</groupId>
                 <artifactId>shrinkwrap-resolver-bom</artifactId>
@@ -207,4 +133,16 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>remote</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <arquillian.qualifier>remote</arquillian.qualifier>
+            </properties>
+        </profile>
+    </profiles>
 </project>
