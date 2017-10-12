@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>fr.brouillard.oss.jee</groupId>
+        <artifactId>mpft-jee-parent</artifactId>
+        <version>0</version>
+    </parent>
+
+    <groupId>fr.brouillard.oss.jee</groupId>
+    <artifactId>mpft-jee-impl</artifactId>
+    <packaging>jar</packaging>
+
+    <name>${project.artifactId}</name>
+    <description>Microprofile Fault Tolerant jee implementation</description>
+
+    <properties>
+        <version.plugin.enforcer>1.4.1</version.plugin.enforcer>
+
+        <version.microprofile-fault-tolerant>1.1-SNAPSHOT</version.microprofile-fault-tolerant>
+        <version.javaee>7.0</version.javaee>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
+            <artifactId>microprofile-fault-tolerance-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

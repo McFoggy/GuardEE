@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>fr.brouillard.oss.jee</groupId>
+        <artifactId>mpft-jee-parent</artifactId>
+        <version>0</version>
+    </parent>
+
+    <groupId>fr.brouillard.oss.jee</groupId>
+    <artifactId>mpft-tck-runner</artifactId>
+    <packaging>jar</packaging>
+
+    <name>${project.artifactId}</name>
+    <description>Executes Microprofile Fault Tolerant tck against with the jee implementation</description>
+
+    <properties>
+        <version.plugin.failsafe>2.19</version.plugin.failsafe>
+        <version.arquillian_universe>1.1.13.7</version.arquillian_universe>
+        <version.testng>6.9.9</version.testng>
+        <version.shrinkwrap>1.2.6</version.shrinkwrap>
+        <version.shrinkwrap.resolver>2.2.4</version.shrinkwrap.resolver>
+        <arquillian.qualifier>wildfly</arquillian.qualifier>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>integration</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <echo>version calculated: ${jgitver.calculated_version}</echo>
+                                <echo>dirty: ${jgitver.dirty}</echo>
+                                <echo>head_committer_name: ${jgitver.head_committer_name}</echo>
+                                <echo>head_commiter_email: ${jgitver.head_commiter_email}</echo>
+                                <echo>head_commit_datetime: ${jgitver.head_commit_datetime}</echo>
+                                <echo>git_sha1_full: ${jgitver.git_sha1_full}</echo>
+                                <echo>git_sha1_8: ${jgitver.git_sha1_8}</echo>
+                                <echo>branch_name: ${jgitver.branch_name}</echo>
+                                <echo>head_tags: ${jgitver.head_tags}</echo>
+                                <echo>head_annotated_tags: ${jgitver.head_annotated_tags}</echo>
+                                <echo>head_lightweight_tags: ${jgitver.head_lightweight_tags}</echo>
+                                <echo>base_tag: ${jgitver.base_tag}</echo>
+                                <echo>all_tags: ${jgitver.all_tags}</echo>
+                                <echo>all_annotated_tags: ${jgitver.all_annotated_tags}</echo>
+                                <echo>all_lightweight_tags: ${jgitver.all_lightweight_tags}</echo>
+                                <echo>all_version_tags: ${jgitver.all_version_tags}</echo>
+                                <echo>all_version_annotated_tags: ${jgitver.all_version_annotated_tags}</echo>
+                                <echo>all_version_lightweight_tags: ${jgitver.all_version_lightweight_tags}</echo>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <echo>version calculated: ${jgitver.calculated_version}</echo>
+                                <echo>dirty: ${jgitver.dirty}</echo>
+                                <echo>head_committer_name: ${jgitver.head_committer_name}</echo>
+                                <echo>head_commiter_email: ${jgitver.head_commiter_email}</echo>
+                                <echo>head_commit_datetime: ${jgitver.head_commit_datetime}</echo>
+                                <echo>git_sha1_full: ${jgitver.git_sha1_full}</echo>
+                                <echo>git_sha1_8: ${jgitver.git_sha1_8}</echo>
+                                <echo>branch_name: ${jgitver.branch_name}</echo>
+                                <echo>head_tags: ${jgitver.head_tags}</echo>
+                                <echo>head_annotated_tags: ${jgitver.head_annotated_tags}</echo>
+                                <echo>head_lightweight_tags: ${jgitver.head_lightweight_tags}</echo>
+                                <echo>base_tag: ${jgitver.base_tag}</echo>
+                                <echo>all_tags: ${jgitver.all_tags}</echo>
+                                <echo>all_annotated_tags: ${jgitver.all_annotated_tags}</echo>
+                                <echo>all_lightweight_tags: ${jgitver.all_lightweight_tags}</echo>
+                                <echo>all_version_tags: ${jgitver.all_version_tags}</echo>
+                                <echo>all_version_annotated_tags: ${jgitver.all_version_annotated_tags}</echo>
+                                <echo>all_version_lightweight_tags: ${jgitver.all_version_lightweight_tags}</echo>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${version.plugin.failsafe}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <mpft.jee.version>JGITVER-${jgitver.calculated_version}</mpft.jee.version>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>tests</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
+                                <chameleon.distribution.dir>${project.build.directory}/distribution</chameleon.distribution.dir>
+                            </systemPropertyVariables>
+                            <dependenciesToScan>
+                                <dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck
+                                </dependency>
+                            </dependenciesToScan>
+                            <includes>
+                                <include>**/*.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>verify</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.arquillian</groupId>
+                <artifactId>arquillian-universe</artifactId>
+                <version>${version.arquillian_universe}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <!--<dependency>-->
+                <!--<groupId>org.jboss.shrinkwrap</groupId>-->
+                <!--<artifactId>shrinkwrap-bom</artifactId>-->
+                <!--<version>${version.shrinkwrap}</version>-->
+                <!--<type>pom</type>-->
+                <!--<scope>import</scope>-->
+            <!--</dependency>-->
+            <dependency>
+                <groupId>org.jboss.shrinkwrap.resolver</groupId>
+                <artifactId>shrinkwrap-resolver-bom</artifactId>
+                <version>${version.shrinkwrap.resolver}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>${version.javaee}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>mpft-jee-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
+            <artifactId>microprofile-fault-tolerance-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
+            <artifactId>microprofile-fault-tolerance-tck</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Tests dependencies -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${version.testng}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.arquillian.universe</groupId>
+            <artifactId>arquillian-testng</artifactId>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.arquillian.universe</groupId>
+            <artifactId>arquillian-chameleon</artifactId>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
