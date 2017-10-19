@@ -3,6 +3,6 @@
        xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
        bean-discovery-mode="all">
     <interceptors>
-        <class>fr.brouillard.oss.ee.fault.tolerance.interceptors.RetryInterceptor</class>
+        <class>fr.brouillard.oss.ee.fault.tolerance.impl.FaultToleranceJEEInterceptor</class>
     </interceptors>
 </beans>

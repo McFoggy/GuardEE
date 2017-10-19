@@ -1,4 +1,4 @@
-package fr.brouillard.oss.ee.fault.tolerance;
+package fr.brouillard.oss.ee.fault.tolerance.config;
 
 import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
 import org.eclipse.microprofile.faulttolerance.Timeout;

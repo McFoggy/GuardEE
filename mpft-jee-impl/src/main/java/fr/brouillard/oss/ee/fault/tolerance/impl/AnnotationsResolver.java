@@ -1,4 +1,4 @@
-package fr.brouillard.oss.ee.fault.tolerance.interceptors;
+package fr.brouillard.oss.ee.fault.tolerance.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -11,7 +11,7 @@ import javax.enterprise.inject.Vetoed;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
 
-public class FaultToleranceAnnotationsResolver {
+public class AnnotationsResolver {
     <E extends Member & AnnotatedElement> Of<Retry> retry(Class<?> bean, E element) {
         return resolverOf(bean, element, Retry.class);
     }

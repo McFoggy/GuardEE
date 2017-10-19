@@ -1,4 +1,4 @@
-package fr.brouillard.oss.ee.fault.tolerance.interceptors;
+package fr.brouillard.oss.ee.fault.tolerance.impl;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
