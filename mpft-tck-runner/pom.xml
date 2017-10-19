@@ -136,12 +136,16 @@
 
     <profiles>
         <profile>
-            <id>remote</id>
+            <id>remote-wildfly</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>remote</name>
+                    <value>wildfly</value>
+                </property>
             </activation>
             <properties>
-                <arquillian.qualifier>remote</arquillian.qualifier>
+                <arquillian.qualifier>remote-wildfly-10</arquillian.qualifier>
             </properties>
         </profile>
     </profiles>

@@ -14,7 +14,11 @@ public class FaultToleranceJEECDIExtension implements Extension {
 
     public <T> void processAnnotatedType(@Observes ProcessAnnotatedType<T> pat, BeanManager beanManager) {
         AnnotatedType<T> annotatedType = pat.getAnnotatedType();
-        
+
+        if ("org.eclipse.microprofile.fault.tolerance.tck.retry.clientserver.RetryClientForMaxRetries".equals(annotatedType.getJavaClass().getName())) {
+            System.out.println("here");
+        }
+
         boolean needFTAnnotation = anyFTAnnotation(annotatedType.getJavaClass().getAnnotations());
 
         Iterator<AnnotatedMethod<? super T>> methodIterator = annotatedType.getMethods().iterator();
@@ -24,7 +28,7 @@ public class FaultToleranceJEECDIExtension implements Extension {
         }
 
         if (needFTAnnotation) {
-            Annotation ftJEEAnnotaion = new Annotation() {
+            Annotation ftJEEAnnotation = new Annotation() {
                 @Override
                 public Class<? extends Annotation> annotationType() {
                     return FaultToleranceJEE.class;
@@ -33,12 +37,12 @@ public class FaultToleranceJEECDIExtension implements Extension {
 
             AnnotatedTypeWrapper<T> wrapper = new AnnotatedTypeWrapper<T>(
                     annotatedType, annotatedType.getAnnotations());
-            wrapper.addAnnotation(ftJEEAnnotaion);
+            wrapper.addAnnotation(ftJEEAnnotation);
             pat.setAnnotatedType(wrapper);
         }
     }
 
     private boolean anyFTAnnotation(Annotation[] annotations) {
-        return Arrays.asList(annotations).stream().anyMatch(a -> FT_CLASSES.contains(a.getClass()));
+        return Arrays.asList(annotations).stream().anyMatch(a -> FT_CLASSES.contains(a.annotationType()));
     }
 }
