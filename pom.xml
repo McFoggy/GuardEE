@@ -56,7 +56,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <version.plugin.enforcer>1.4.1</version.plugin.enforcer>
-
+        <version.testng>6.9.9</version.testng>
         <version.microprofile-fault-tolerant>1.0</version.microprofile-fault-tolerant>
         <version.javaee>7.0</version.javaee>
     </properties>
@@ -90,11 +90,19 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                 <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
                 <artifactId>microprofile-fault-tolerance-api</artifactId>
                 <version>${version.microprofile-fault-tolerant}</version>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
                 <artifactId>microprofile-fault-tolerance-tck</artifactId>
                 <version>${version.microprofile-fault-tolerant}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${version.testng}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

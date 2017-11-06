@@ -36,7 +36,6 @@
     <properties>
         <version.plugin.failsafe>2.19</version.plugin.failsafe>
         <version.arquillian_universe>1.1.13.7</version.arquillian_universe>
-        <version.testng>6.9.9</version.testng>
         <version.shrinkwrap>1.2.6</version.shrinkwrap>
         <version.shrinkwrap.resolver>2.2.4</version.shrinkwrap.resolver>
         <arquillian.qualifier>wildfly</arquillian.qualifier>
@@ -129,7 +128,6 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>${version.testng}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

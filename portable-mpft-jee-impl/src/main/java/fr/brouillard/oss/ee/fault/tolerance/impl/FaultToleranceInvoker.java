@@ -15,7 +15,11 @@
  */
 package fr.brouillard.oss.ee.fault.tolerance.impl;
 
+import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerHandler;
+import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerManager;
+import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
 import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
+
 import org.eclipse.microprofile.faulttolerance.exceptions.FaultToleranceException;
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException;
 
@@ -24,7 +28,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.UUID;
 
@@ -35,6 +38,9 @@ public class FaultToleranceInvoker {
     @Inject
     TimeoutManager tm;
 
+    @Inject
+    CircuitBreakerManager circuitBreaker;
+
     public FaultToleranceInvoker() {
     }
 
@@ -43,16 +49,18 @@ public class FaultToleranceInvoker {
         rnd = new Random(System.nanoTime());
     }
 
-    public Object invoke(InvocationConfiguration cfg, InvocationContext context) {
+    public Object invoke(InvocationConfiguration cfg, InvocationContext context) throws Exception {
         boolean ended = true;
         int retry = 0;
         Throwable latestFailure = null;
-
+        
         long jitterInMillis = 0;
         long durationInMillis = Duration.of(cfg.getMaxDuration(), cfg.getDurationUnit()).toMillis();
         long delayInMillis = Duration.of(cfg.getDelay(), cfg.getDelayUnit()).toMillis();
         long timeoutInMillis = Duration.of(cfg.getTimeout(), cfg.getTimeoutUnit()).toMillis();
         long durationExpirationTime = System.currentTimeMillis() + durationInMillis;
+
+        ExecutionContextImpl executionContext = new ExecutionContextImpl(context.getMethod(), context.getParameters());
 
         do {
             if (retry > 0 && cfg.getMaxRetries() > 0) {
@@ -69,25 +77,29 @@ public class FaultToleranceInvoker {
                 break;
             }
 
+            CircuitBreakerHandler circuitBreakerHandler = circuitBreaker.forContext(executionContext);
             try {
+                circuitBreakerHandler.enter();
+
                 if (cfg.getTimeout() > 0) {
                     Thread executingThread = Thread.currentThread();
                     tm.register(uuid, timeoutInMillis, executingThread);
                 }
 
                 Object value = context.proceed();
+                circuitBreakerHandler.success();
                 if ((cfg.getTimeout() == 0) || !tm.hasReachedTimeout(uuid)) {
                     return value;
                 }
                 latestFailure = new TimeoutException();
             } catch (Throwable t) {
-                latestFailure = t;
+                latestFailure = circuitBreakerHandler.onFailure(t);
 
                 // AbortOn has priority on RetryOn
-                if (isAssignableToAnyOf(cfg.getAbortOn(), t)) {
+                if (Exceptions.isAssignableToAnyOf(cfg.getAbortOn(), t)) {
                     break;
                 }
-                if (!isAssignableToAnyOf(cfg.getRetryOn(), t)) {
+                if (!Exceptions.isAssignableToAnyOf(cfg.getRetryOn(), t)) {
                     break;
                 }
             } finally {
@@ -100,16 +112,15 @@ public class FaultToleranceInvoker {
 
         if (latestFailure instanceof FaultToleranceException) {
             throw (FaultToleranceException) latestFailure;
+        } else if (latestFailure instanceof Exception) {
+            throw (Exception) latestFailure;
         }
-        throw new FaultToleranceException(latestFailure);
-    }
-
-    private boolean isAssignableToAnyOf(Class<? extends Throwable>[] abortOn, Throwable t) {
-        return Arrays.asList(abortOn).stream().filter(c -> c.isInstance(t)).findFirst().isPresent();
+        throw (Error) latestFailure;
     }
 
     private long computeJitterInMillis(InvocationConfiguration cfg) {
         long jitter = Duration.of(cfg.getJitter(), cfg.getJitterDelayUnit()).toMillis();
         return rnd.nextInt((int) jitter);
     }
+
 }

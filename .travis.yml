@@ -12,5 +12,5 @@ before_install:
 
 script:
 - ./mvnw clean install -DskipTests
-- ./mvnw verify -Dit.test=Retry*
-- ./mvnw verify -Dit.test=Timeout*
+- ./mvnw verify "-Dit.test=Retry*, Timeout*"
+- ./mvnw verify -Dit.test=CircuitBreaker*

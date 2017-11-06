@@ -15,14 +15,23 @@
  */
 package fr.brouillard.oss.ee.fault.tolerance.impl;
 
-import org.eclipse.microprofile.faulttolerance.*;
-
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.*;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.enterprise.event.Observes;
+import javax.enterprise.inject.spi.AnnotatedMethod;
+import javax.enterprise.inject.spi.AnnotatedType;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.Extension;
+import javax.enterprise.inject.spi.ProcessAnnotatedType;
+
+import org.eclipse.microprofile.faulttolerance.Bulkhead;
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 
 public class FaultToleranceJEECDIExtension implements Extension {
     private final static List<Class<? extends Annotation>> FT_CLASSES = Arrays.asList(Retry.class, Timeout.class, Fallback.class, Bulkhead.class, CircuitBreaker.class);
@@ -50,8 +59,7 @@ public class FaultToleranceJEECDIExtension implements Extension {
                 }
             };
 
-            AnnotatedTypeWrapper<T> wrapper = new AnnotatedTypeWrapper<T>(
-                    annotatedType, annotatedType.getAnnotations());
+            AnnotatedTypeWrapper<T> wrapper = new AnnotatedTypeWrapper<T>(annotatedType, annotatedType.getAnnotations());
             wrapper.addAnnotation(ftJEEAnnotation);
             pat.setAnnotatedType(wrapper);
         }

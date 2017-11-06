@@ -47,5 +47,10 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
             <artifactId>microprofile-fault-tolerance-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

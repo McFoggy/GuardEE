@@ -15,16 +15,14 @@
  */
 package fr.brouillard.oss.ee.fault.tolerance.impl;
 
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
+
+import javax.enterprise.inject.Vetoed;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
-import java.util.function.BiConsumer;
-
-import javax.enterprise.inject.Vetoed;
-
-import org.eclipse.microprofile.faulttolerance.Retry;
-import org.eclipse.microprofile.faulttolerance.Timeout;
 
 public class AnnotationsResolver {
     <E extends Member & AnnotatedElement> Of<Retry> retry(Class<?> bean, E element) {
