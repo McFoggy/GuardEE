@@ -4,12 +4,12 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.brouillard.oss.jee</groupId>
-    <artifactId>mpft-jee-parent</artifactId>
+    <artifactId>portable-mpft-jee-parent</artifactId>
     <version>0</version>
     <packaging>pom</packaging>
 
     <name>${project.artifactId}</name>
-    <description>Microprofile Fault Tolerant jee implementation parent pom</description>
+    <description>Microprofile Fault Tolerant portable JEE compliant implementation parent pom</description>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -24,8 +24,8 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     </properties>
 
     <modules>
-        <module>mpft-jee-impl</module>
-        <module>mpft-tck-runner</module>
+        <module>portable-mpft-jee-impl</module>
+        <module>portable-mpft-jee-tck-runner</module>
     </modules>
 
     <dependencyManagement>

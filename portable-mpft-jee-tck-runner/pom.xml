@@ -5,12 +5,12 @@
 
     <parent>
         <groupId>fr.brouillard.oss.jee</groupId>
-        <artifactId>mpft-jee-parent</artifactId>
+        <artifactId>portable-mpft-jee-parent</artifactId>
         <version>0</version>
     </parent>
 
     <groupId>fr.brouillard.oss.jee</groupId>
-    <artifactId>mpft-tck-runner</artifactId>
+    <artifactId>portable-mpft-jee-tck-runner</artifactId>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
@@ -93,7 +93,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>mpft-jee-impl</artifactId>
+            <artifactId>portable-mpft-jee-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

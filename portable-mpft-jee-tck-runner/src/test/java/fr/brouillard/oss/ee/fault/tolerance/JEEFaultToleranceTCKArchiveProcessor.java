@@ -17,8 +17,7 @@ public class JEEFaultToleranceTCKArchiveProcessor implements ApplicationArchiveP
         if (applicationArchive instanceof WebArchive) {
             String implVersion = System.getProperty("mpft.jee.version");
             if (implVersion != null && implVersion.trim().length() > 0) {
-                String gav = String.format("fr.brouillard.oss.jee:mpft-jee-impl:%s", implVersion);
-
+                String gav = String.format("fr.brouillard.oss.jee:portable-mpft-jee-impl:%s", implVersion);
 
                 File[] jeeImplAndDeps = Maven.resolver().resolve(gav).withTransitivity().asFile();
                 ((WebArchive) applicationArchive).addAsLibraries(jeeImplAndDeps);
