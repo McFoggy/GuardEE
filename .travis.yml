@@ -7,6 +7,9 @@ cache:
   directories:
   - $HOME/.m2
 
+before_install:
+- chmod a+x ./mvnw
+
 script:
 - ./mvnw clean install -DskipTests
 - ./mvnw verify -Dit.test=Retry*
