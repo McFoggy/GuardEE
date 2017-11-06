@@ -31,6 +31,18 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <version.javaee>7.0</version.javaee>
     </properties>
 
+    <developers>
+        <developer>
+            <id>McFoggy</id>
+            <name>Matthieu Brouillard</name>
+            <timezone>Europe/Paris</timezone>
+            <url>http://blog.matthieu.brouillard.fr</url>
+            <roles>
+                <role>project creator</role>
+            </roles>
+        </developer>
+    </developers>
+
     <modules>
         <module>portable-mpft-jee-impl</module>
         <module>portable-mpft-jee-tck-runner</module>
