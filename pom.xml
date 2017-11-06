@@ -37,6 +37,18 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         </license>
     </licenses>
 
+    <scm>
+        <connection>scm:git:https://github.com/McFoggy/portable-mpft-jee.git</connection>
+        <developerConnection>scm:git:https://github.com/McFoggy/portable-mpft-jee.git</developerConnection>
+        <url>http://oss.brouillard.fr/portable-mpft-jee</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/McFoggy/portable-mpft-jee/issues</url>
+    </issueManagement>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
