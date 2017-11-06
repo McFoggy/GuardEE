@@ -117,6 +117,8 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                         <exclude>.okhttpcache/**</exclude>
                         <exclude>.*</exclude>
                         <exclude>.*</exclude>
+                        <exclude>mvnw*</exclude>
+                        <exclude>.mvn/wrapper/*.*</exclude>
                         <exclude>src/test/resources/**</exclude>
                         <exclude>src/main/resources/**</exclude>
                     </excludes>
