@@ -30,7 +30,18 @@ dependencies {
 }
 ````
 
+## TCK compliance
 
+| Mode / Filter | Status |
+| :-- | --- |
+| all TCK | :x: |
+| Retry tests | :heavy_check_mark: |
+| Timeout tests | :heavy_check_mark: |
+| Fallback tests | :x: |
+| CircuitBreaker tests | :x: |
+| Config tests | :x: |
+| Bulkhead tests | :x: |
+| Asynchronous tests | :x: |
 
 ## Build & Test
 
