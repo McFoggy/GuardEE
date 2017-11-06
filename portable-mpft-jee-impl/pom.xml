@@ -35,9 +35,6 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <properties>
         <version.plugin.enforcer>1.4.1</version.plugin.enforcer>
-
-        <version.microprofile-fault-tolerant>1.1-SNAPSHOT</version.microprofile-fault-tolerant>
-        <version.javaee>7.0</version.javaee>
     </properties>
 
     <dependencies>
