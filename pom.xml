@@ -11,6 +11,14 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <name>${project.artifactId}</name>
     <description>Microprofile Fault Tolerant portable JEE compliant implementation parent pom</description>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
