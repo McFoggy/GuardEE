@@ -70,6 +70,16 @@ example with filtering on Retry tests: `mvn clean install -Dit.test=Retry*`
 mvn clean install -Dremote=wildfly
 ````
 
+## Branch policy
+
+On this project several rules apply:
+
+1. __ONLY__ the `master` branch has to be considered as a public branch.  
+    As such, other branches have to be considered as temporary/working branches only and can be modified/rewritten/rebased/deleted.  
+1. In order to enforce previous point, `master` branch is protected _(included for admins)_.  
+That also means that any change to master has to go first to an integration branch that passes the protections in place:
+    - green CI build 
+
 ## Release
 
 In order to keep the project history clean, [jgitver](https://github.com/jgitver/jgitver-maven-plugin) is used for version management.  
