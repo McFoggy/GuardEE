@@ -163,9 +163,13 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
         mark(failure);
 
         if (failure) {
-            double calculatedFailureRation = ratio();
-            if (calculatedFailureRation >= failureRatio) {
+            if (CircuitState.SEMI_OPENED == state) {
                 setState(CircuitState.OPENED);
+            } else {
+                double calculatedFailureRation = ratio();
+                if (calculatedFailureRation >= failureRatio) {
+                    setState(CircuitState.OPENED);
+                }
             }
         }
 
