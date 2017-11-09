@@ -49,7 +49,8 @@ public class TimeoutManager {
 
     public void register(String uuid, long timeoutDelay, Thread executingThread) {
         timeoutThreads.computeIfAbsent(uuid, ignore -> {
-            timerService.createTimer(timeoutDelay, uuid);
+            TimerConfig tc = new TimerConfig(uuid, false);
+            timerService.createSingleActionTimer(timeoutDelay, tc);
             return new TimeoutHandler(executingThread);
         });
     }

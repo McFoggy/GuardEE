@@ -15,22 +15,22 @@
  */
 package fr.brouillard.oss.ee.fault.tolerance.impl;
 
-import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerHandler;
-import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerHandlerImpl;
-import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerManager;
-import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
-import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
-
-import org.eclipse.microprofile.faulttolerance.exceptions.FaultToleranceException;
-import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException;
+import java.time.Duration;
+import java.util.Random;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
-import java.time.Duration;
-import java.util.Random;
-import java.util.UUID;
+
+import org.eclipse.microprofile.faulttolerance.exceptions.FaultToleranceException;
+import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException;
+
+import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerHandlerImpl;
+import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerManager;
+import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
+import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
 
 @ApplicationScoped
 public class FaultToleranceInvoker {
