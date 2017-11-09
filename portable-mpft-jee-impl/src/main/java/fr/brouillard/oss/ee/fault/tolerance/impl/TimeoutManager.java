@@ -16,6 +16,7 @@
 package fr.brouillard.oss.ee.fault.tolerance.impl;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import java.io.Serializable;
@@ -37,6 +38,13 @@ public class TimeoutManager {
     @PostConstruct
     public void initialize() {
         timeoutThreads = new ConcurrentHashMap<>();
+    }
+    
+    @PreDestroy
+    public void cleanup() {
+        timerService.getAllTimers().stream().forEach(t -> {
+            cancelTimer(t);
+        });
     }
 
     public void register(String uuid, long timeoutDelay, Thread executingThread) {
