@@ -39,10 +39,6 @@ public class FaultToleranceJEECDIExtension implements Extension {
     public <T> void processAnnotatedType(@Observes ProcessAnnotatedType<T> pat, BeanManager beanManager) {
         AnnotatedType<T> annotatedType = pat.getAnnotatedType();
 
-        if ("org.eclipse.microprofile.fault.tolerance.tck.retry.clientserver.RetryClientForMaxRetries".equals(annotatedType.getJavaClass().getName())) {
-            System.out.println("here");
-        }
-
         boolean needFTAnnotation = anyFTAnnotation(annotatedType.getJavaClass().getAnnotations());
 
         Iterator<AnnotatedMethod<? super T>> methodIterator = annotatedType.getMethods().iterator();

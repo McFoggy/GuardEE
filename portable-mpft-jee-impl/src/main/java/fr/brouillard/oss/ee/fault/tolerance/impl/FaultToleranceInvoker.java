@@ -16,6 +16,7 @@
 package fr.brouillard.oss.ee.fault.tolerance.impl;
 
 import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerHandler;
+import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerHandlerImpl;
 import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerManager;
 import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
 import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
@@ -61,6 +62,7 @@ public class FaultToleranceInvoker {
         long durationExpirationTime = System.currentTimeMillis() + durationInMillis;
 
         ExecutionContextImpl executionContext = new ExecutionContextImpl(context.getMethod(), context.getParameters());
+        CircuitBreakerHandlerImpl circuitBreakerHandler = (CircuitBreakerHandlerImpl) circuitBreaker.forContext(executionContext);
 
         do {
             if (retry > 0 && cfg.getMaxRetries() > 0) {
@@ -77,7 +79,6 @@ public class FaultToleranceInvoker {
                 break;
             }
 
-            CircuitBreakerHandler circuitBreakerHandler = circuitBreaker.forContext(executionContext);
             try {
                 circuitBreakerHandler.enter();
 
@@ -87,19 +88,22 @@ public class FaultToleranceInvoker {
                 }
 
                 Object value = context.proceed();
-                circuitBreakerHandler.success();
                 if ((cfg.getTimeout() == 0) || !tm.hasReachedTimeout(uuid)) {
+                    circuitBreakerHandler.success();
                     return value;
                 }
                 latestFailure = new TimeoutException();
+                latestFailure = circuitBreakerHandler.onFailure(latestFailure);
             } catch (Throwable t) {
                 latestFailure = circuitBreakerHandler.onFailure(t);
 
                 // AbortOn has priority on RetryOn
-                if (Exceptions.isAssignableToAnyOf(cfg.getAbortOn(), t)) {
+                if (Exceptions.isAssignableToAnyOf(cfg.getAbortOn(), latestFailure)) {
                     break;
                 }
-                if (!Exceptions.isAssignableToAnyOf(cfg.getRetryOn(), t)) {
+
+                boolean continueExecution = Exceptions.isFTTimeout(latestFailure) || Exceptions.isAssignableToAnyOf(cfg.getRetryOn(), latestFailure);
+                if (!continueExecution) {
                     break;
                 }
             } finally {

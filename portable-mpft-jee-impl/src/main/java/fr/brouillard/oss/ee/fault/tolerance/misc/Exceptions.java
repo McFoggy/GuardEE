@@ -17,8 +17,14 @@ package fr.brouillard.oss.ee.fault.tolerance.misc;
 
 import java.util.Arrays;
 
+import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException;
+
 public class Exceptions {
     public static boolean isAssignableToAnyOf(Class<? extends Throwable>[] abortOn, Throwable t) {
         return Arrays.asList(abortOn).stream().filter(c -> c.isInstance(t)).findFirst().isPresent();
+    }
+    
+    public static boolean isFTTimeout(Throwable t) {
+        return TimeoutException.class.isInstance(t);
     }
 }

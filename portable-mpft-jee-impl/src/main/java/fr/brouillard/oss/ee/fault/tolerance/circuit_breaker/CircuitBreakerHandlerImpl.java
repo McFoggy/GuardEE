@@ -29,7 +29,7 @@ import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenExce
 import fr.brouillard.oss.ee.fault.tolerance.config.Globals;
 import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
 
-class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
+public class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
 
     private final Class<? extends Throwable>[] failOn;
     private final long windowDuration;
@@ -138,8 +138,6 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
         calls.add(new Execution(currentTime, !failure));
     }
 
-
-
     public Throwable onFailure(Throwable t, int id) {
         try{
             System.out.println(String.format("[%d] before::failure - %s", id, state));
@@ -186,7 +184,7 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
      * Exposed for tests only, return the current circuit breaker state
      * @return the current state
      */
-    CircuitState getState() {
+    public CircuitState getState() {
         return state;
     }
 
@@ -204,7 +202,7 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
             if (readLock.tryLock(2, TimeUnit.SECONDS)) {
                 long windowStart = now - windowDuration;
 
-                double callsInWindow = getCount(this.calls, windowStart, skipFirstSuccessForRatioComputation);
+                double callsInWindow = getCallsCount(this.calls, windowStart, skipFirstSuccessForRatioComputation);
                 double failuresInWindow = this.calls.stream().filter(e -> !e.isSuccess() && e.getTime() > windowStart).count();
 
                 if (callsInWindow >= volumeThreshold) {
@@ -222,7 +220,7 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
         return 1.0d;
     }
 
-    private long getCount(Collection<Execution> calls, long startOfWindow, boolean skipFirstSucess) {
+    private long getCallsCount(Collection<Execution> calls, long startOfWindow, boolean skipFirstSucess) {
         List<Execution> consideredCalls = calls
                 .stream()
                 .filter(e -> e.getTime() > startOfWindow)
@@ -250,7 +248,7 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
             if (readLock.tryLock(2, TimeUnit.SECONDS)) {
                 long windowStart = now - windowDuration;
 
-                double callsInWindow = getCount(calls, windowStart, skipFirstSuccessForRatioComputation);
+                double callsInWindow = getCallsCount(calls, windowStart, skipFirstSuccessForRatioComputation);
                 double failuresInWindow = calls.stream().filter(e -> !e.isSuccess() && e.getTime() > windowStart).count();
 
                 if (callsInWindow >= volumeThreshold) {
