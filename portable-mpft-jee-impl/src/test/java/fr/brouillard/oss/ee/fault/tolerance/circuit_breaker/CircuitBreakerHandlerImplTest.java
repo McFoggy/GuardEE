@@ -22,6 +22,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import fr.brouillard.oss.ee.fault.tolerance.AdditionalAssertions;
+import fr.brouillard.oss.ee.fault.tolerance.config.Globals;
 
 public class CircuitBreakerHandlerImplTest {
     @Test
@@ -154,15 +155,19 @@ public class CircuitBreakerHandlerImplTest {
     public void mimic_CircuitBreakerTest_testCircuitDefaultSuccessThreshold() {
         int volumeThreshold = 4;
         int successThreshold = 1;
+        
+        String oldConfigValue = null;
+        try {
+            oldConfigValue = System.setProperty(Globals.FT_CIRCUIT_BREAKER_FAILURE_RATIO_STRICT, "true");
 
-        CircuitBreakerHandlerImpl cb = new CircuitBreakerHandlerImpl(
-                new Class[] {Exception.class},
-                TimeUnit.MILLISECONDS.toNanos(1000l),
-                volumeThreshold,
-                0.75d,
-                successThreshold
-        );
-        Exception exception = new Exception();
+            CircuitBreakerHandlerImpl cb = new CircuitBreakerHandlerImpl(
+                    new Class[] {Exception.class},
+                    TimeUnit.MILLISECONDS.toNanos(1000l),
+                    volumeThreshold,
+                    0.75d,
+                    successThreshold
+            );
+            Exception exception = new Exception();
 
         /*
         * 1         RunTimeException
@@ -179,53 +184,60 @@ public class CircuitBreakerHandlerImplTest {
         * 11        CircuitBreakerOpenException
         */
 
-        cb.enter(1);
-        cb.onFailure(exception, 1);
+            cb.enter(1);
+            cb.onFailure(exception, 1);
 
-        cb.enter(2);
-        cb.onFailure(exception, 2);
+            cb.enter(2);
+            cb.onFailure(exception, 2);
 
-        cb.enter(3);
-        cb.onFailure(exception, 3);
+            cb.enter(3);
+            cb.onFailure(exception, 3);
 
-        cb.enter(4);
-        cb.onFailure(exception, 4);
+            cb.enter(4);
+            cb.onFailure(exception, 4);
 
-        Assert.assertEquals(cb.getState(), CircuitState.OPENED);
-        AdditionalAssertions.assertThrows(CircuitBreakerOpenException.class, () -> cb.enter(5));
-        Assert.assertEquals(cb.getState(), CircuitState.OPENED);
+            Assert.assertEquals(cb.getState(), CircuitState.OPENED);
+            AdditionalAssertions.assertThrows(CircuitBreakerOpenException.class, () -> cb.enter(5));
+            Assert.assertEquals(cb.getState(), CircuitState.OPENED);
 
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException ignore) {
-        }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ignore) {
+            }
 
-        Assert.assertEquals(cb.getState(), CircuitState.OPENED);
-        cb.enter(6);
-        Assert.assertEquals(cb.getState(), CircuitState.SEMI_OPENED);
-        cb.success(6);
-        Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
+            Assert.assertEquals(cb.getState(), CircuitState.OPENED);
+            cb.enter(6);
+            Assert.assertEquals(cb.getState(), CircuitState.SEMI_OPENED);
+            cb.success(6);
+            Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
 
-        cb.enter(7);
-        Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
-        cb.onFailure(exception, 7);
-        Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
+            cb.enter(7);
+            Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
+            cb.onFailure(exception, 7);
+            Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
 
-        cb.enter(8);
-        Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
-        cb.onFailure(exception, 8);
-        Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
+            cb.enter(8);
+            Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
+            cb.onFailure(exception, 8);
+            Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
 
-        cb.enter(9);
-        Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
-        cb.onFailure(exception, 9);
-        Assert.assertEquals(cb.getState(), CircuitState.OPENED);
+            cb.enter(9);
+            Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
+            cb.onFailure(exception, 9);
+            Assert.assertEquals(cb.getState(), CircuitState.OPENED);
 
 //        cb.enter(10);
 //        Assert.assertEquals(cb.getState(), CircuitState.CLOSED);
 //        cb.onFailure(exception, 10);
 //        Assert.assertEquals(cb.getState(), CircuitState.OPENED);
 
-        AdditionalAssertions.assertThrows(CircuitBreakerOpenException.class, () -> cb.enter(11));
+            AdditionalAssertions.assertThrows(CircuitBreakerOpenException.class, () -> cb.enter(11));
+        } finally {
+            if (oldConfigValue != null) {
+                System.setProperty(Globals.FT_CIRCUIT_BREAKER_FAILURE_RATIO_STRICT, oldConfigValue);
+            } else {
+                System.clearProperty(Globals.FT_CIRCUIT_BREAKER_FAILURE_RATIO_STRICT);
+            }
+        }
     }
 }

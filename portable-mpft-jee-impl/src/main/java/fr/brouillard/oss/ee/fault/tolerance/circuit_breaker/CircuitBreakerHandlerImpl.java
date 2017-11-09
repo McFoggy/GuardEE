@@ -18,12 +18,15 @@ package fr.brouillard.oss.ee.fault.tolerance.circuit_breaker;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
 import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenException;
 
+import fr.brouillard.oss.ee.fault.tolerance.config.Globals;
 import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
 
 class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
@@ -36,6 +39,7 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
     private final ReentrantReadWriteLock.ReadLock readLock;
     private final ReentrantReadWriteLock.WriteLock writeLock;
     private final int volumeThreshold;
+    private final boolean skipFirstSuccessForRatioComputation;
     private CircuitState state = CircuitState.CLOSED;
     private LimitedQueue<Execution> calls;
 
@@ -57,9 +61,11 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
         this.failureRatio = failureRatio;
         this.successThreshold = successThreshold;
 
-        rwLock = new ReentrantReadWriteLock(true);
-        readLock = rwLock.readLock();
-        writeLock = rwLock.writeLock();
+        this.rwLock = new ReentrantReadWriteLock(true);
+        this.readLock = rwLock.readLock();
+        this.writeLock = rwLock.writeLock();
+
+        this.skipFirstSuccessForRatioComputation = !Boolean.getBoolean(Globals.FT_CIRCUIT_BREAKER_FAILURE_RATIO_STRICT);
     }
 
     @Override
@@ -198,8 +204,8 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
             if (readLock.tryLock(2, TimeUnit.SECONDS)) {
                 long windowStart = now - windowDuration;
 
-                double callsInWindow = calls.stream().filter(e -> e.getTime() > windowStart).count();
-                double failuresInWindow = calls.stream().filter(e -> !e.isSuccess() && e.getTime() > windowStart).count();
+                double callsInWindow = getCount(this.calls, windowStart, skipFirstSuccessForRatioComputation);
+                double failuresInWindow = this.calls.stream().filter(e -> !e.isSuccess() && e.getTime() > windowStart).count();
 
                 if (callsInWindow >= volumeThreshold) {
                     return failuresInWindow / callsInWindow;
@@ -216,13 +222,35 @@ class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
         return 1.0d;
     }
 
+    private long getCount(Collection<Execution> calls, long startOfWindow, boolean skipFirstSucess) {
+        List<Execution> consideredCalls = calls
+                .stream()
+                .filter(e -> e.getTime() > startOfWindow)
+                .collect(Collectors.toCollection(() -> new ArrayList<>(calls.size())));
+        
+        if (skipFirstSucess) {
+            int firstFailureIndex = 0;
+            for (int i = 0; i < consideredCalls.size(); i++) {
+                if (!consideredCalls.get(i).isSuccess()) {
+                    firstFailureIndex = i;
+                    break;
+                }
+            }
+            if (firstFailureIndex < consideredCalls.size()) {
+                consideredCalls = consideredCalls.subList(firstFailureIndex, consideredCalls.size());
+            }
+        }
+        
+        return consideredCalls.stream().filter(e -> e.getTime() > startOfWindow).count();
+    }
+
     private double ratio(int id) {
         long now = System.nanoTime();
         try {
             if (readLock.tryLock(2, TimeUnit.SECONDS)) {
                 long windowStart = now - windowDuration;
 
-                double callsInWindow = calls.stream().filter(e -> e.getTime() > windowStart).count();
+                double callsInWindow = getCount(calls, windowStart, skipFirstSuccessForRatioComputation);
                 double failuresInWindow = calls.stream().filter(e -> !e.isSuccess() && e.getTime() > windowStart).count();
 
                 if (callsInWindow >= volumeThreshold) {
