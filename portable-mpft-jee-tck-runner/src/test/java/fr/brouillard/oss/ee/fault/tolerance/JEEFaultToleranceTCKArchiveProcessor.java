@@ -19,6 +19,8 @@ import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArch
 import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
@@ -30,12 +32,22 @@ public class JEEFaultToleranceTCKArchiveProcessor implements ApplicationArchiveP
     @Override
     public void process(Archive<?> applicationArchive, TestClass testClass) {
         if (applicationArchive instanceof WebArchive) {
+            WebArchive war = (WebArchive) applicationArchive;
             String implVersion = System.getProperty("mpft.jee.version");
             if (implVersion != null && implVersion.trim().length() > 0) {
                 String gav = String.format("fr.brouillard.oss.jee:portable-mpft-jee-impl:%s", implVersion);
 
                 File[] jeeImplAndDeps = Maven.resolver().resolve(gav).withTransitivity().asFile();
-                ((WebArchive) applicationArchive).addAsLibraries(jeeImplAndDeps);
+                war.addAsLibraries(jeeImplAndDeps);
+                
+                if (Boolean.getBoolean("arquillian.archive.add.beans.xml")) {
+                    war.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+                }
+
+                String dumpPath = System.getProperty("arquillian.archive.dump");
+                if (dumpPath != null) {
+                    war.as(ZipExporter.class).exportTo(new File(dumpPath + System.currentTimeMillis() + "-" + war.getName()), true);
+                }
             }
         }
     }

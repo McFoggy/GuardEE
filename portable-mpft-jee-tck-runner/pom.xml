@@ -55,6 +55,7 @@
                             <goal>integration-test</goal>
                         </goals>
                         <configuration>
+                            <reuseForks>false</reuseForks>
                             <systemPropertyVariables>
                                 <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
                                 <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
@@ -150,6 +151,24 @@
     </dependencies>
 
     <profiles>
+        <profile>
+            <id>dump-wars</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${version.plugin.failsafe}</version>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <arquillian.archive.dump>${project.build.directory}/</arquillian.archive.dump>
+                                <arquillian.archive.add.beans.xml>true</arquillian.archive.add.beans.xml>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>remote-wildfly</id>
             <activation>
