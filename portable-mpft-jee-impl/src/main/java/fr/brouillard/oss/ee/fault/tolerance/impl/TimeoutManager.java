@@ -26,10 +26,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Singleton
 @TransactionManagement(TransactionManagementType.BEAN)
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class TimeoutManager {
+    private final static Logger LOGGER = LoggerFactory.getLogger(TimeoutManager.class);
+    
     @Resource
     TimerService timerService;
 
@@ -43,44 +48,59 @@ public class TimeoutManager {
     @PreDestroy
     public void cleanup() {
         timerService.getAllTimers().stream().forEach(t -> {
-            cancelTimer(t);
+            try {
+                t.cancel();
+            } catch (Exception ex) {
+                LOGGER.debug("unexpected exception while cancelling timer", ex);
+            }
         });
     }
 
-    public void register(String uuid, long timeoutDelay, Thread executingThread) {
-        timeoutThreads.computeIfAbsent(uuid, ignore -> {
+    public void register(String uuid, long timeoutDelayInMillis, Thread executingThread) {
+        LOGGER.debug("for key[{}], registering a timeout of {}ms for thread [{}]", uuid, timeoutDelayInMillis, executingThread.getName());
+        
+        timeoutThreads.compute(uuid, (key, oldTH) -> {
+            if (oldTH != null) {
+                LOGGER.warn("an existing TimerHandler was found under key::{}", uuid);
+            }
             TimerConfig tc = new TimerConfig(uuid, false);
-            timerService.createSingleActionTimer(timeoutDelay, tc);
+            timerService.createSingleActionTimer(timeoutDelayInMillis, tc);
             return new TimeoutHandler(executingThread);
         });
     }
 
     @Timeout
     public void timeout(Timer timer) {
-        Serializable timerInfo = timer.getInfo();
-        if (timerInfo instanceof String) {
-            String uuid = (String) timerInfo;
-            TimeoutHandler th = timeoutThreads.get(uuid);
-            th.timeout();
+        try {
+            Serializable timerInfo = timer.getInfo();
+            
+            if (timerInfo instanceof String) {
+                String uuid = (String) timerInfo;
+                LOGGER.debug("timeout reached for key[{}]", uuid);
+                TimeoutHandler th = timeoutThreads.remove(uuid);
+                th.timeout();
+            }
+        } catch (Exception ex) {
+            LOGGER.debug("unexpected exception while firing timeout", ex);
         }
     }
 
     public void cancelTimerByUUID(String uuid) {
-        timerService.getTimers().stream().filter(t -> uuid.equals(t.getInfo())).findFirst().ifPresent(this::cancelTimer);
-        timeoutThreads.remove(uuid);
-    }
-
-    private void cancelTimer(Timer t) {
-        try {
-            t.cancel();
-        } catch (java.lang.IllegalStateException | javax.ejb.EJBException timerException) {
-            // TODO add traces
+        if (timeoutThreads.remove(uuid) != null) {
+            try {
+                timerService.getTimers().stream().filter(t -> uuid.equals(t.getInfo())).findFirst().ifPresent(Timer::cancel);
+            } catch (Exception ex) {
+                LOGGER.debug("unexpected exception while accessing EJB timer for key[{}]", uuid, ex);
+            }
+            LOGGER.debug("timer cancelled for key[{}]", uuid);
+        } else {
+            LOGGER.trace("timer for key[{}] was already cancelled", uuid);
         }
     }
 
     public boolean hasReachedTimeout(String uuid) {
         TimeoutHandler th = timeoutThreads.get(uuid);
-        return (th!=null)?th.hasReachedTimeout():false;
+        return (th!=null)?th.hasReachedTimeout():true;
     }
 
     private class TimeoutHandler {
@@ -95,9 +115,12 @@ public class TimeoutManager {
             timeoutReached.set(true);
             Thread t = executingThread.get();
             if (t != null) {
+                LOGGER.debug("timeout reached, interrupting thread[{}]", t.getName());
                 synchronized (t) {
                     t.interrupt();
                 }
+            } else {
+                LOGGER.trace("timeout reached but thread has gone");
             }
         }
 
@@ -105,8 +128,4 @@ public class TimeoutManager {
             return timeoutReached.get();
         }
     }
-
-
-
-
 }
