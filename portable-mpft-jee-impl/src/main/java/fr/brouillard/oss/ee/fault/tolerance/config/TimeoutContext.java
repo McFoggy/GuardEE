@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.circuit_breaker;
+package fr.brouillard.oss.ee.fault.tolerance.config;
 
-public interface CircuitBreakerHandler {
-    void enter();
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
-    void success();
+public class TimeoutContext {
+    private final long timeout;
+    private final ChronoUnit timeoutUnit;
 
-    Exception onFailure(Exception t);
+    public TimeoutContext(long timeout, ChronoUnit timeoutUnit) {
+        this.timeout = timeout;
+        this.timeoutUnit = timeoutUnit;
+    }
+    
+    public long toMillis() {
+        return Duration.of(timeout, timeoutUnit).toMillis();
+    }
 }

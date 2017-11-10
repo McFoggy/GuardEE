@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.circuit_breaker;
+package fr.brouillard.oss.ee.fault.tolerance.impl;
 
-public interface CircuitBreakerHandler {
-    void enter();
+import fr.brouillard.oss.ee.fault.tolerance.timeout.TimeoutInvoker;
 
-    void success();
+public class Chains {
+    public static InvokerChain end() {
+        return context -> context.proceed();
+    }
 
-    Exception onFailure(Exception t);
+    public static InvokerChain decorate(Invoker invoker, InvokerChain chain) {
+        return context -> invoker.invoke(context, chain);
+    }
 }

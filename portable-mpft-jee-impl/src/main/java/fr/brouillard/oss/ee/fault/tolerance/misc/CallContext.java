@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.circuit_breaker;
+package fr.brouillard.oss.ee.fault.tolerance.misc;
 
-public interface CircuitBreakerHandler {
-    void enter();
+import java.util.concurrent.atomic.AtomicBoolean;
 
-    void success();
+public class CallContext {
+    private AtomicBoolean timeout = new AtomicBoolean(false);
 
-    Exception onFailure(Exception t);
+    public void setTimeout() {
+        timeout.set(true);
+    }
+
+    public void clearTimeout() {
+        timeout.set(false);
+    }
+    
+    public boolean wasTimeoutReached() {
+        return  timeout.get();
+    }
 }

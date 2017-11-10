@@ -21,13 +21,14 @@ import javax.annotation.Resource;
 import javax.ejb.*;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.brouillard.oss.ee.fault.tolerance.misc.CallContext;
 
 @Singleton
 @TransactionManagement(TransactionManagementType.BEAN)
@@ -56,8 +57,10 @@ public class TimeoutManager {
         });
     }
 
-    public void register(String uuid, long timeoutDelayInMillis, Thread executingThread) {
+    public CallContext register(String uuid, long timeoutDelayInMillis, Thread executingThread) {
         LOGGER.debug("for key[{}], registering a timeout of {}ms for thread [{}]", uuid, timeoutDelayInMillis, executingThread.getName());
+
+        CallContext callContext = new CallContext();
         
         timeoutThreads.compute(uuid, (key, oldTH) -> {
             if (oldTH != null) {
@@ -65,8 +68,10 @@ public class TimeoutManager {
             }
             TimerConfig tc = new TimerConfig(uuid, false);
             timerService.createSingleActionTimer(timeoutDelayInMillis, tc);
-            return new TimeoutHandler(executingThread);
+            return new TimeoutHandler(executingThread, callContext);
         });
+        
+        return callContext;
     }
 
     @Timeout
@@ -106,13 +111,19 @@ public class TimeoutManager {
     private class TimeoutHandler {
         private AtomicBoolean timeoutReached = new AtomicBoolean(false);
         private WeakReference<Thread> executingThread;
+        private CallContext callContext;
 
-        public TimeoutHandler(Thread t) {
-            executingThread = new WeakReference<Thread>(t);
+        public TimeoutHandler(Thread t, CallContext callContext) {
+            this.executingThread = new WeakReference<Thread>(t);
+            this.callContext = callContext;
         }
 
         public void timeout() {
             timeoutReached.set(true);
+            if (callContext != null) {
+                // TODO remove end of refactoring
+                callContext.setTimeout();
+            }
             Thread t = executingThread.get();
             if (t != null) {
                 LOGGER.debug("timeout reached, interrupting thread[{}]", t.getName());

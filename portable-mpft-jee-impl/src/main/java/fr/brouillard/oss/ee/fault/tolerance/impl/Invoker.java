@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.circuit_breaker;
+package fr.brouillard.oss.ee.fault.tolerance.impl;
 
-public interface CircuitBreakerHandler {
-    void enter();
+import javax.interceptor.InvocationContext;
 
-    void success();
-
-    Exception onFailure(Exception t);
+public interface Invoker {
+    public Object invoke(InvocationContext context, InvokerChain chain) throws Exception;
 }

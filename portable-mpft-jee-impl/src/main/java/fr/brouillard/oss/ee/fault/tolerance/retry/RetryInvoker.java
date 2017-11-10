@@ -13,51 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.impl;
+package fr.brouillard.oss.ee.fault.tolerance.retry;
 
 import java.time.Duration;
 import java.util.Random;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
 
 import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenException;
-import org.eclipse.microprofile.faulttolerance.exceptions.FaultToleranceException;
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException;
 
-import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerHandlerImpl;
-import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerManager;
+import fr.brouillard.oss.ee.fault.tolerance.EEGuardException;
+import fr.brouillard.oss.ee.fault.tolerance.config.Configurator;
+import fr.brouillard.oss.ee.fault.tolerance.config.RetryContext;
+import fr.brouillard.oss.ee.fault.tolerance.impl.Invoker;
+import fr.brouillard.oss.ee.fault.tolerance.impl.InvokerChain;
 import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
-import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
 
-public class FaultToleranceInvoker {
+public class RetryInvoker implements Invoker {
+    private final Configurator conf;
     private final Random rnd;
-    private final TimeoutManager tm;
-    private final CircuitBreakerManager circuitBreaker;
 
     @Inject
-    public FaultToleranceInvoker(TimeoutManager tm, CircuitBreakerManager cb) {
+    public RetryInvoker(Configurator cfg) {
+        this.conf = cfg;
         this.rnd = new Random(System.nanoTime());
-        this.tm = tm;
-        this.circuitBreaker = cb;
     }
 
-    public Object invoke(InvocationConfiguration cfg, InvocationContext context) throws Exception {
+    @Override
+    public Object invoke(InvocationContext context, InvokerChain chain) throws Exception {
+        RetryContext cfg = conf.retry(context).orElseThrow(() -> new EEGuardException());
+
         boolean ended = true;
         int retry = 0;
-        Throwable latestFailure = null;
-        
+        Exception latestFailure = null;
+
         long jitterInMillis = 0;
         long durationInMillis = Duration.of(cfg.getMaxDuration(), cfg.getDurationUnit()).toMillis();
         long delayInMillis = Duration.of(cfg.getDelay(), cfg.getDelayUnit()).toMillis();
-        long timeoutInMillis = Duration.of(cfg.getTimeout(), cfg.getTimeoutUnit()).toMillis();
         long durationExpirationTime = System.currentTimeMillis() + durationInMillis;
-
-        ExecutionContextImpl executionContext = new ExecutionContextImpl(context.getMethod(), context.getParameters());
-        CircuitBreakerHandlerImpl circuitBreakerHandler = (CircuitBreakerHandlerImpl) circuitBreaker.forContext(executionContext);
 
         do {
             if (retry > 0 && cfg.getMaxRetries() > 0) {
@@ -75,52 +71,38 @@ public class FaultToleranceInvoker {
             }
 
             try {
-                circuitBreakerHandler.enter();
-
-                if (cfg.getTimeout() > 0) {
-                    Thread executingThread = Thread.currentThread();
-                    tm.register(uuid, timeoutInMillis, executingThread);
-                }
-
-                Object value = context.proceed();
-                if ((cfg.getTimeout() == 0) || !tm.hasReachedTimeout(uuid)) {
-                    circuitBreakerHandler.success();
-                    return value;
-                }
-                latestFailure = new TimeoutException();
-                latestFailure = circuitBreakerHandler.onFailure(latestFailure);
-            } catch (Throwable t) {
-                latestFailure = circuitBreakerHandler.onFailure(t);
+                return chain.invoke(context);
+            } catch (Exception t) {
+                latestFailure = t;
 
                 // AbortOn has priority on RetryOn
+                
+                // Lets stop execution if:
+                // - CircuitBreaker was opened 
+                // - or if received throwable was configured to stop retry executions 
                 boolean shouldStopExecution = CircuitBreakerOpenException.class.isInstance(latestFailure) || Exceptions.isAssignableToAnyOf(cfg.getAbortOn(), latestFailure);
                 if (shouldStopExecution) {
                     break;
                 }
 
-                boolean continueExecution = Exceptions.isFTTimeout(latestFailure) || Exceptions.isAssignableToAnyOf(cfg.getRetryOn(), latestFailure);
+                // Lets continue
+                // - We received a TimeoutException from TimeoutInvoker 
+                // - or if received throwable was configured to retry executions 
+                boolean continueExecution = TimeoutException.class.isInstance(latestFailure) || Exceptions.isAssignableToAnyOf(cfg.getRetryOn(), latestFailure);
                 if (!continueExecution) {
                     break;
                 }
-            } finally {
-                tm.cancelTimerByUUID(uuid);
             }
 
             retry++;
             ended = (retry > cfg.getMaxRetries());
         } while (!ended);
 
-        if (latestFailure instanceof FaultToleranceException) {
-            throw (FaultToleranceException) latestFailure;
-        } else if (latestFailure instanceof Exception) {
-            throw (Exception) latestFailure;
-        }
-        throw (Error) latestFailure;
+        throw latestFailure;
     }
 
-    private long computeJitterInMillis(InvocationConfiguration cfg) {
+    private long computeJitterInMillis(RetryContext cfg) {
         long jitter = Duration.of(cfg.getJitter(), cfg.getJitterDelayUnit()).toMillis();
         return rnd.nextInt((int) jitter);
     }
-
 }

@@ -162,7 +162,7 @@ public class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
     }
 
     @Override
-    public Throwable onFailure(Throwable t) {
+    public Exception onFailure(Exception t) {
         boolean failure = Exceptions.isAssignableToAnyOf(failOn, t);
         mark(failure);
 

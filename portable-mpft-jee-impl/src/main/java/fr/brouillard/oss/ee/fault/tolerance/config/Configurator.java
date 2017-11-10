@@ -15,27 +15,11 @@
  */
 package fr.brouillard.oss.ee.fault.tolerance.config;
 
-import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
-import org.eclipse.microprofile.faulttolerance.Timeout;
+import java.util.Optional;
 
-public class Configurator {
-    /**
-     * Enhances given found retry configuration, with dynamic configuration if any
-     * @param name the name of the retry configuration for which additional settings are being retrieved
-     * @param baseConfiguration a base configuration to modify
-     * @return the configuration to use
-     */
-    public InvocationConfiguration retry(String name, InvocationConfiguration baseConfiguration) {
-        return baseConfiguration;
-    }
+import javax.interceptor.InvocationContext;
 
-    /**
-     * Enhances given found retry configuration, with dynamic configuration if any
-     * @param name the name of the timeout configuration for which additional settings are being retrieved
-     * @param baseConfiguration a base configuration to modify
-     * @return the configuration to use
-     */
-    public InvocationConfiguration timeout(String name, InvocationConfiguration baseConfiguration) {
-        return baseConfiguration;
-    }
+public interface Configurator {
+    public Optional<TimeoutContext> timeout(InvocationContext ic);
+    public Optional<RetryContext> retry(InvocationContext ic);
 }

@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.circuit_breaker;
+package fr.brouillard.oss.ee.fault.tolerance;
 
-public interface CircuitBreakerHandler {
-    void enter();
+public class EEGuardException extends RuntimeException {
+    public EEGuardException() {
+    }
 
-    void success();
+    public EEGuardException(String message) {
+        super(message);
+    }
 
-    Exception onFailure(Exception t);
+    public EEGuardException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public EEGuardException(Throwable cause) {
+        super(cause);
+    }
+
+    public EEGuardException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }
