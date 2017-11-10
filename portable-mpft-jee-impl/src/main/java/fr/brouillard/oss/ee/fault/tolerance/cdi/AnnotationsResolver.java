@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.impl;
+package fr.brouillard.oss.ee.fault.tolerance.cdi;
 
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
@@ -25,10 +25,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 
 public class AnnotationsResolver {
-    <E extends Member & AnnotatedElement> Of<Retry> retry(Class<?> bean, E element) {
+    public <E extends Member & AnnotatedElement> Of<Retry> retry(Class<?> bean, E element) {
         return resolverOf(bean, element, Retry.class);
     }
-    <E extends Member & AnnotatedElement> Of<Timeout> timeout(Class<?> bean, E element) {
+    public <E extends Member & AnnotatedElement> Of<Timeout> timeout(Class<?> bean, E element) {
         return resolverOf(bean, element, Timeout.class);
     }
     private <E extends Member & AnnotatedElement, T extends Annotation> Of<T> resolverOf(Class<?> bean, E element, Class<T> ftAnnotation) {
@@ -88,7 +88,7 @@ public class AnnotationsResolver {
         return "";
     }
 
-    interface Of<T extends Annotation> {
+    public interface Of<T extends Annotation> {
         boolean isPresent();
 
         String name();

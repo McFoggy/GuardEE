@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.impl;
+package fr.brouillard.oss.ee.fault.tolerance.cdi;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -26,6 +26,7 @@ import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
+import javax.enterprise.inject.spi.WithAnnotations;
 
 import org.eclipse.microprofile.faulttolerance.Bulkhead;
 import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
@@ -34,20 +35,10 @@ import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
 
 public class FaultToleranceJEECDIExtension implements Extension {
-    private final static List<Class<? extends Annotation>> FT_CLASSES = Arrays.asList(Retry.class, Timeout.class, Fallback.class, Bulkhead.class, CircuitBreaker.class);
-
-    public <T> void processAnnotatedType(@Observes ProcessAnnotatedType<T> pat, BeanManager beanManager) {
+    public <T> void processAnnotatedType(@Observes @WithAnnotations({Retry.class, Timeout.class, Fallback.class, Bulkhead.class, CircuitBreaker.class}) ProcessAnnotatedType<T> pat, BeanManager beanManager) {
         AnnotatedType<T> annotatedType = pat.getAnnotatedType();
-
-        boolean needFTAnnotation = anyFTAnnotation(annotatedType.getJavaClass().getAnnotations());
-
-        Iterator<AnnotatedMethod<? super T>> methodIterator = annotatedType.getMethods().iterator();
-        while (!needFTAnnotation && methodIterator.hasNext()) {
-            AnnotatedMethod<? super T> am = methodIterator.next();
-            needFTAnnotation = anyFTAnnotation(am.getJavaMember().getDeclaredAnnotations());
-        }
-
-        if (needFTAnnotation) {
+        
+        if (!annotatedType.isAnnotationPresent(FaultToleranceJEE.class)) {
             Annotation ftJEEAnnotation = new Annotation() {
                 @Override
                 public Class<? extends Annotation> annotationType() {
@@ -59,9 +50,5 @@ public class FaultToleranceJEECDIExtension implements Extension {
             wrapper.addAnnotation(ftJEEAnnotation);
             pat.setAnnotatedType(wrapper);
         }
-    }
-
-    private boolean anyFTAnnotation(Annotation[] annotations) {
-        return Arrays.asList(annotations).stream().anyMatch(a -> FT_CLASSES.contains(a.annotationType()));
     }
 }
