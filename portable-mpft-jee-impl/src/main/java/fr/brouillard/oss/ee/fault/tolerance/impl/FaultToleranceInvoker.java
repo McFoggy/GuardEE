@@ -24,6 +24,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
 
+import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenException;
 import org.eclipse.microprofile.faulttolerance.exceptions.FaultToleranceException;
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException;
 
@@ -92,7 +93,8 @@ public class FaultToleranceInvoker {
                 latestFailure = circuitBreakerHandler.onFailure(t);
 
                 // AbortOn has priority on RetryOn
-                if (Exceptions.isAssignableToAnyOf(cfg.getAbortOn(), latestFailure)) {
+                boolean shouldStopExecution = CircuitBreakerOpenException.class.isInstance(latestFailure) || Exceptions.isAssignableToAnyOf(cfg.getAbortOn(), latestFailure);
+                if (shouldStopExecution) {
                     break;
                 }
 
