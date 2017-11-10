@@ -55,7 +55,6 @@
                             <goal>integration-test</goal>
                         </goals>
                         <configuration>
-                            <reuseForks>false</reuseForks>
                             <systemPropertyVariables>
                                 <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
                                 <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
