@@ -13,3 +13,6 @@ before_install:
 script:
 - ./mvnw clean install -DskipTests
 - ./mvnw verify "-Dit.test=Retry*, Timeout*, CircuitBreaker*"
+
+after_failure:
+- find target/it -name server.log -exec echo {} \; -exec cat {} \;
