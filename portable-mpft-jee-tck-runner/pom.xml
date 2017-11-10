@@ -155,12 +155,25 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
                 <property>
-                    <name>remote</name>
-                    <value>wildfly</value>
+                    <name>server</name>
+                    <value>wildfly-remote</value>
                 </property>
             </activation>
             <properties>
                 <arquillian.qualifier>remote-wildfly-10</arquillian.qualifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>glassfish</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>server</name>
+                    <value>glassfish</value>
+                </property>
+            </activation>
+            <properties>
+                <arquillian.qualifier>glassfish</arquillian.qualifier>
             </properties>
         </profile>
     </profiles>

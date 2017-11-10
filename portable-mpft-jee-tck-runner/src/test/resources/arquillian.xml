@@ -14,4 +14,9 @@
             <property name="chameleonTarget">wildfly:10.1.0.Final:remote</property>
         </configuration>
     </container>
+    <container qualifier="glassfish">
+        <configuration>
+            <property name="chameleonTarget">glassfish:4.1.2:managed</property>
+        </configuration>
+    </container>
 </arquillian>
