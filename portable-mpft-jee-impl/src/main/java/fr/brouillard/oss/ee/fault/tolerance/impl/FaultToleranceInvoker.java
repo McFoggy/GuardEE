@@ -32,22 +32,16 @@ import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerManage
 import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
 import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
 
-@ApplicationScoped
 public class FaultToleranceInvoker {
-    private Random rnd;
+    private final Random rnd;
+    private final TimeoutManager tm;
+    private final CircuitBreakerManager circuitBreaker;
 
     @Inject
-    TimeoutManager tm;
-
-    @Inject
-    CircuitBreakerManager circuitBreaker;
-
-    public FaultToleranceInvoker() {
-    }
-
-    @PostConstruct
-    public void initialize() {
-        rnd = new Random(System.nanoTime());
+    public FaultToleranceInvoker(TimeoutManager tm, CircuitBreakerManager cb) {
+        this.rnd = new Random(System.nanoTime());
+        this.tm = tm;
+        this.circuitBreaker = cb;
     }
 
     public Object invoke(InvocationConfiguration cfg, InvocationContext context) throws Exception {
