@@ -31,7 +31,7 @@ import javax.interceptor.InvocationContext;
 
 @FaultToleranceJEE
 @Interceptor
-@Priority(Interceptor.Priority.PLATFORM_AFTER)
+@Priority(Interceptor.Priority.LIBRARY_BEFORE - 10)      // Just before libraries       
 public class FaultToleranceJEEInterceptor {
     private final Bean<?> bean;
     private final AnnotationsResolver annotationResolver;
