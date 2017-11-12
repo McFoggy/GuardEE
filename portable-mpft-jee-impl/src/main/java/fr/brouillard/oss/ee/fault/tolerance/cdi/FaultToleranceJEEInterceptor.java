@@ -17,12 +17,14 @@ package fr.brouillard.oss.ee.fault.tolerance.cdi;
 
 import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerInvoker;
 import fr.brouillard.oss.ee.fault.tolerance.config.AnnotationFinder;
+import fr.brouillard.oss.ee.fault.tolerance.fallback.FallbackInvoker;
 import fr.brouillard.oss.ee.fault.tolerance.impl.Chains;
 import fr.brouillard.oss.ee.fault.tolerance.impl.InvokerChain;
 import fr.brouillard.oss.ee.fault.tolerance.retry.RetryInvoker;
 import fr.brouillard.oss.ee.fault.tolerance.timeout.TimeoutInvoker;
 
 import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
 
@@ -39,12 +41,14 @@ public class FaultToleranceJEEInterceptor {
     private TimeoutInvoker timeoutInvoker;
     private CircuitBreakerInvoker circuitBreakerInvoker;
     private RetryInvoker retryInvoker;
+    private FallbackInvoker fallbackInvoker;
 
     @Inject
-    public FaultToleranceJEEInterceptor(TimeoutInvoker ti, CircuitBreakerInvoker cbi, RetryInvoker ri) {
+    public FaultToleranceJEEInterceptor(TimeoutInvoker ti, CircuitBreakerInvoker cbi, RetryInvoker ri, FallbackInvoker fi) {
         this.timeoutInvoker = ti;
         this.circuitBreakerInvoker = cbi;
         this.retryInvoker = ri;
+        this.fallbackInvoker = fi;
     }
 
     @AroundInvoke
@@ -59,6 +63,9 @@ public class FaultToleranceJEEInterceptor {
         }
         if (AnnotationFinder.find(invocationContext, Retry.class).isPresent()) {
             chain = Chains.decorate(retryInvoker, chain);
+        }
+        if (AnnotationFinder.find(invocationContext, Fallback.class).isPresent()) {
+            chain = Chains.decorate(fallbackInvoker, chain);
         }
         
         return chain.invoke(invocationContext);

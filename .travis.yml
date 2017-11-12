@@ -12,7 +12,7 @@ before_install:
 
 script:
 - ./mvnw clean install -DskipTests
-- ./mvnw verify "-Dit.test=Retry*, Timeout*, CircuitBreaker*"
+- ./mvnw verify "-Dit.test=Retry*, Timeout*, CircuitBreaker*, Fallback*"
 
 after_failure:
 - find target/it -name server.log -exec echo {} \; -exec cat {} \;
