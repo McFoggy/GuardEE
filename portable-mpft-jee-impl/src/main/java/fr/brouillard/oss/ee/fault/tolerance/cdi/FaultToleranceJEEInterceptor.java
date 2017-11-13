@@ -15,6 +15,7 @@
  */
 package fr.brouillard.oss.ee.fault.tolerance.cdi;
 
+import fr.brouillard.oss.ee.fault.tolerance.bulkhead.BulkheadInvoker;
 import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerInvoker;
 import fr.brouillard.oss.ee.fault.tolerance.config.AnnotationFinder;
 import fr.brouillard.oss.ee.fault.tolerance.fallback.FallbackInvoker;
@@ -23,6 +24,7 @@ import fr.brouillard.oss.ee.fault.tolerance.impl.InvokerChain;
 import fr.brouillard.oss.ee.fault.tolerance.retry.RetryInvoker;
 import fr.brouillard.oss.ee.fault.tolerance.timeout.TimeoutInvoker;
 
+import org.eclipse.microprofile.faulttolerance.Bulkhead;
 import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
@@ -42,29 +44,39 @@ public class FaultToleranceJEEInterceptor {
     private CircuitBreakerInvoker circuitBreakerInvoker;
     private RetryInvoker retryInvoker;
     private FallbackInvoker fallbackInvoker;
+    private BulkheadInvoker bulkheadInvoker;
 
     @Inject
-    public FaultToleranceJEEInterceptor(TimeoutInvoker ti, CircuitBreakerInvoker cbi, RetryInvoker ri, FallbackInvoker fi) {
+    public FaultToleranceJEEInterceptor(
+            TimeoutInvoker ti, 
+            CircuitBreakerInvoker cbi, 
+            RetryInvoker ri, 
+            FallbackInvoker fi, 
+            BulkheadInvoker bi) {
         this.timeoutInvoker = ti;
         this.circuitBreakerInvoker = cbi;
         this.retryInvoker = ri;
         this.fallbackInvoker = fi;
+        this.bulkheadInvoker = bi;
     }
 
     @AroundInvoke
     public Object executeFaultTolerance(InvocationContext invocationContext) throws Exception {
         InvokerChain chain = Chains.end();
         
-        if (AnnotationFinder.find(invocationContext, Timeout.class).isPresent()) {
+        if (AnnotationFinder.find(invocationContext, Timeout.class).getAnnotation().isPresent()) {
             chain = Chains.decorate(timeoutInvoker, chain);
         }
-        if (AnnotationFinder.find(invocationContext, CircuitBreaker.class).isPresent()) {
+        if (AnnotationFinder.find(invocationContext, Bulkhead.class).getAnnotation().isPresent()) {
+            chain = Chains.decorate(bulkheadInvoker, chain);
+        }
+        if (AnnotationFinder.find(invocationContext, CircuitBreaker.class).getAnnotation().isPresent()) {
             chain = Chains.decorate(circuitBreakerInvoker, chain);
         }
-        if (AnnotationFinder.find(invocationContext, Retry.class).isPresent()) {
+        if (AnnotationFinder.find(invocationContext, Retry.class).getAnnotation().isPresent()) {
             chain = Chains.decorate(retryInvoker, chain);
         }
-        if (AnnotationFinder.find(invocationContext, Fallback.class).isPresent()) {
+        if (AnnotationFinder.find(invocationContext, Fallback.class).getAnnotation().isPresent()) {
             chain = Chains.decorate(fallbackInvoker, chain);
         }
         

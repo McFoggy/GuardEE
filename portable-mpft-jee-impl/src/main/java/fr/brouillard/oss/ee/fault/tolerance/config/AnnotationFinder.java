@@ -23,21 +23,24 @@ import java.util.Optional;
 import javax.interceptor.InvocationContext;
 
 public class AnnotationFinder {
-    public static <T extends Annotation> Optional<T> find(InvocationContext ic, Class<T> annotationClass) {
+    public static <T extends Annotation> AnnotationFindResult<T> find(InvocationContext ic, Class<T> annotationClass) {
         Method invokedMethod = ic.getMethod();
         Object caller = ic.getTarget();
+        
+        String searchKey = caller.getClass().getName() + "/" + invokedMethod.getName();
 
         // the method is directly declared on the caller
         if (Arrays.asList(caller.getClass().getDeclaredMethods()).contains(invokedMethod)) {
-            return Optional.ofNullable(invokedMethod.getAnnotation(annotationClass));
+            T annotation = invokedMethod.getAnnotation(annotationClass);
+            return new AnnotationFindResult(searchKey, searchKey, annotation);
         };
         
-        return findOn(caller.getClass(), invokedMethod, annotationClass);
+        return findOnClass(searchKey, caller.getClass(), invokedMethod, annotationClass);
     }
 
-    private static <T extends Annotation> Optional<T> findOn(Class<?> aClass, Method invokedMethod, Class<T> annotationClass) {
+    private static <T extends Annotation> AnnotationFindResult<T> findOnClass(String searchKey, Class<?> aClass, Method invokedMethod, Class<T> annotationClass) {
         if (aClass == null) {
-            return Optional.empty();
+            return new AnnotationFindResult<>(searchKey, null, null);
         }
         
         if (aClass.getName().equals(invokedMethod.getDeclaringClass().getName())) {
@@ -45,13 +48,37 @@ public class AnnotationFinder {
             T annotation = invokedMethod.getAnnotation(annotationClass);
             
             if (annotation != null) {
-                return Optional.of(annotation);
+                return new AnnotationFindResult<>(searchKey, aClass.getName() + "/" + invokedMethod.getName(), annotation);
             } else {
                 // last chance we look on the class declaring the method
-                return Optional.ofNullable(invokedMethod.getDeclaringClass().getDeclaredAnnotation(annotationClass));
+                return new AnnotationFindResult<>(searchKey, aClass.getName(), invokedMethod.getDeclaringClass().getDeclaredAnnotation(annotationClass));
             }
         }
 
-        return findOn(aClass.getSuperclass(), invokedMethod, annotationClass);
+        return findOnClass(searchKey, aClass.getSuperclass(), invokedMethod, annotationClass);
+    }
+    
+    public static class AnnotationFindResult<T extends Annotation> {
+        private final String searchKey;
+        private final String foundKey;
+        private final Optional<T> annotation;
+
+        AnnotationFindResult(String searchKey, String foundKey, T annotationValue) {
+            this.searchKey = searchKey;
+            this.foundKey = foundKey;
+            this.annotation = Optional.ofNullable(annotationValue);
+        }
+
+        public String getSearchKey() {
+            return searchKey;
+        }
+
+        public String getFoundKey() {
+            return foundKey;
+        }
+
+        public Optional<T> getAnnotation() {
+            return annotation;
+        }
     }
 }

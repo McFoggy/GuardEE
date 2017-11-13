@@ -15,46 +15,103 @@
  */
 package fr.brouillard.oss.ee.fault.tolerance.config;
 
-import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.interceptor.InvocationContext;
 
-import fr.brouillard.oss.ee.fault.tolerance.model.InvocationConfiguration;
-
+import org.eclipse.microprofile.faulttolerance.Asynchronous;
+import org.eclipse.microprofile.faulttolerance.Bulkhead;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class ApplicationConfigurator implements Configurator {
-    /**
-     * Enhances given found retry configuration, with dynamic configuration if any
-     * @param name the name of the retry configuration for which additional settings are being retrieved
-     * @param baseConfiguration a base configuration to modify
-     * @return the configuration to use
-     */
-    public InvocationConfiguration retry(String name, InvocationConfiguration baseConfiguration) {
-        return baseConfiguration;
-    }
+    private final static Logger LOGGER = LoggerFactory.getLogger(ApplicationConfigurator.class);
 
-    /**
-     * Enhances given found retry configuration, with dynamic configuration if any
-     * @param name the name of the timeout configuration for which additional settings are being retrieved
-     * @param baseConfiguration a base configuration to modify
-     * @return the configuration to use
-     */
-    public InvocationConfiguration timeout(String name, InvocationConfiguration baseConfiguration) {
-        return baseConfiguration;
+    private ReentrantReadWriteLock rw;
+    private Map<String, BulkheadContext> bulkheadContexts;
+
+    @PostConstruct
+    public void initialize() {
+        rw = new ReentrantReadWriteLock(true);
+        bulkheadContexts = new LinkedHashMap<>();
     }
 
     @Override
     public Optional<TimeoutContext> timeout(InvocationContext ic) {
-        Optional<Timeout> timeoutAnnotation = AnnotationFinder.find(ic, Timeout.class);
+        Optional<Timeout> timeoutAnnotation = AnnotationFinder.find(ic, Timeout.class).getAnnotation();
         return timeoutAnnotation.map(t -> new TimeoutContext(t.value(), t.unit()));
     }
 
     @Override
     public Optional<RetryContext> retry(InvocationContext ic) {
-        Optional<Retry> retryAnnotation = AnnotationFinder.find(ic, Retry.class);
+        Optional<Retry> retryAnnotation = AnnotationFinder.find(ic, Retry.class).getAnnotation();
         return retryAnnotation.map(RetryContext::new);
+    }
+
+    @Override
+    public Optional<BulkheadContext> bulkhead(InvocationContext ic) {
+        AnnotationFinder.AnnotationFindResult<Bulkhead> bulkheadAnnotationFindResult = AnnotationFinder.find(ic, Bulkhead.class);
+        Optional<Asynchronous> optAsynchronuous = AnnotationFinder.find(ic, Asynchronous.class).getAnnotation();
+
+        ReentrantReadWriteLock.ReadLock readLock = rw.readLock();
+
+        if (bulkheadAnnotationFindResult.getAnnotation().isPresent()) {
+            BulkheadContext context = bulkheadContexts.get(bulkheadAnnotationFindResult.getSearchKey());
+            
+            try {
+                if (readLock.tryLock() || readLock.tryLock(5, TimeUnit.SECONDS)) {
+                    try {
+                        if (context == null) {
+                            context = bulkheadContexts.get(bulkheadAnnotationFindResult.getFoundKey());
+                        }
+
+                        if (context != null) {
+                            LOGGER.debug("for [{}], found bulkhead context: {}", bulkheadAnnotationFindResult.getSearchKey(), context);
+                            return Optional.of(context);
+                        }
+                    } finally {
+                        readLock.unlock();
+                    }
+
+                    // no context found on the key, we need to create & register one
+                    ReentrantReadWriteLock.WriteLock writeLock = rw.writeLock();
+                    if (writeLock.tryLock() || writeLock.tryLock(5, TimeUnit.SECONDS)) {
+                        try {
+                            // check we are not unblocked after another thread was creating the context
+                            context = bulkheadContexts.get(bulkheadAnnotationFindResult.getSearchKey());
+                            if (context == null) {
+                                context = bulkheadContexts.get(bulkheadAnnotationFindResult.getFoundKey());
+                            }
+                            if (context == null) {
+                                context = new BulkheadContext(bulkheadAnnotationFindResult.getAnnotation().get(), optAsynchronuous.isPresent());
+                                LOGGER.debug("for [{}], registering under [{}] bulkhead context: {}", bulkheadAnnotationFindResult.getSearchKey(), bulkheadAnnotationFindResult.getFoundKey(), context);
+
+                                bulkheadContexts.put(bulkheadAnnotationFindResult.getFoundKey(), context);
+                            }
+                            return Optional.of(context);
+                        } finally {
+                            writeLock.unlock();
+                        }
+                    } else {
+                        return Optional.empty();
+                    }
+                } else {
+                    return Optional.empty();
+                }
+            } catch (InterruptedException e) {
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 }

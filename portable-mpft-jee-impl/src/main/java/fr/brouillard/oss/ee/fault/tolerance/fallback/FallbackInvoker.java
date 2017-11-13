@@ -38,7 +38,7 @@ public class FallbackInvoker implements Invoker {
         try {
             return chain.invoke(context);
         } catch (Exception ex) {
-            Optional<Fallback> optFallback = AnnotationFinder.find(context, Fallback.class);
+            Optional<Fallback> optFallback = AnnotationFinder.find(context, Fallback.class).getAnnotation();
             
             if (optFallback.isPresent()) {
                 Fallback annotationFallback = optFallback.get();

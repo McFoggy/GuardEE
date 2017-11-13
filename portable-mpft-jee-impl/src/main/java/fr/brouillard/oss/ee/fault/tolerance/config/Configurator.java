@@ -22,4 +22,5 @@ import javax.interceptor.InvocationContext;
 public interface Configurator {
     public Optional<TimeoutContext> timeout(InvocationContext ic);
     public Optional<RetryContext> retry(InvocationContext ic);
+    public Optional<BulkheadContext> bulkhead(InvocationContext ic);
 }
