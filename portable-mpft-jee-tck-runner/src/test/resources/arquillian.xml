@@ -12,6 +12,10 @@
     <container qualifier="remote-wildfly-10">
         <configuration>
             <property name="chameleonTarget">wildfly:10.1.0.Final:remote</property>
+            <property name="username">${server.username}</property>
+            <property name="password">${server.password}</property>
+            <property name="managementAddress">${server.ip}</property>
+            <property name="managementPort">${server.managementPort}</property>            
         </configuration>
     </container>
     <container qualifier="glassfish">

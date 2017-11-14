@@ -39,6 +39,11 @@
         <version.shrinkwrap>1.2.6</version.shrinkwrap>
         <version.shrinkwrap.resolver>2.2.4</version.shrinkwrap.resolver>
         <arquillian.qualifier>wildfly</arquillian.qualifier>
+        
+        <server.username>admin</server.username>
+        <server.password>a</server.password>
+        <server.ip>localhost</server.ip>
+        <server.managementPort>9990</server.managementPort>
     </properties>
 
     <build>
@@ -59,6 +64,10 @@
                                 <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
                                 <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
                                 <chameleon.distribution.dir>${project.build.directory}/distribution</chameleon.distribution.dir>
+                                <server.username>${server.username}</server.username>
+                                <server.password>${server.password}</server.password>
+                                <server.ip>${server.ip}</server.ip>
+                                <server.managementPort>${server.managementPort}</server.managementPort>
                             </systemPropertyVariables>
                             <dependenciesToScan>
                                 <dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck
