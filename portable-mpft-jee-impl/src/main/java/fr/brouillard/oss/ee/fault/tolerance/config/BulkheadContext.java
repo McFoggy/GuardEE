@@ -78,28 +78,30 @@ public class BulkheadContext {
     public void releaseWaiting() {
         if (asynchronous && waitingSemaphore != null) {
             passedWaiting.decrementAndGet();
-            LOGGER.debug("[WAIT][ENDED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
             waitingSemaphore.release();
+            LOGGER.debug("[WAIT][ENDED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
         }
     }
 
-
     public boolean acquireExecution() {
         try {
-            bulkheadSemaphore.acquire();
-            passedExecuting.incrementAndGet();
-            LOGGER.debug("[EXECUTE][PASSED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
-            return true;
+            boolean executionAllowed = bulkheadSemaphore.tryAcquire(0, TimeUnit.SECONDS);;
+            if (executionAllowed) {
+                passedExecuting.incrementAndGet();
+                LOGGER.debug("[EXECUTE][PASSED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
+            } else {
+                LOGGER.debug("[EXECUTE][FAILED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
+            }
+            return executionAllowed;
         } catch (InterruptedException ie) {
-            LOGGER.debug("[EXECUTE][FAILED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
             return false;
         }
     }
 
     public void releaseExecution() {
         passedExecuting.decrementAndGet();
-        LOGGER.debug("[EXECUTE][ENDED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
         bulkheadSemaphore.release();
+        LOGGER.debug("[EXECUTE][ENDED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
     }
 
     public boolean isAsynchronous() {
@@ -112,7 +114,8 @@ public class BulkheadContext {
                 "id=" + System.identityHashCode(this) +
                 ", asynchronous=" + asynchronous +
                 ", size=" + size +
-                ", waitingSize=" + waitingSize +
+                ", available=" + bulkheadSemaphore.availablePermits() +
+                ((asynchronous)?", waitingSize=" + waitingSize +", waiting available=" + waitingSemaphore.availablePermits():"") +
                 '}';
     }
 }

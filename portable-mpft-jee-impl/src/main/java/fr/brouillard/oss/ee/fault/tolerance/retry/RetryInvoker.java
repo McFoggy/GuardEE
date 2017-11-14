@@ -24,6 +24,8 @@ import javax.interceptor.InvocationContext;
 
 import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenException;
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import fr.brouillard.oss.ee.fault.tolerance.EEGuardException;
 import fr.brouillard.oss.ee.fault.tolerance.config.Configurator;
@@ -33,6 +35,7 @@ import fr.brouillard.oss.ee.fault.tolerance.impl.InvokerChain;
 import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
 
 public class RetryInvoker implements Invoker {
+    private final static Logger LOGGER  = LoggerFactory.getLogger(RetryInvoker.class); 
     private final Configurator conf;
     private final Random rnd;
 
@@ -56,6 +59,9 @@ public class RetryInvoker implements Invoker {
         long durationExpirationTime = System.currentTimeMillis() + durationInMillis;
 
         do {
+            LOGGER.trace("{}#{} start retry[{}]"
+                    , context.getTarget().getClass().getSimpleName()
+                    , context.getMethod().getName(), retry);
             if (retry > 0 && cfg.getMaxRetries() > 0) {
                 jitterInMillis = computeJitterInMillis(cfg);
                 try {
@@ -71,9 +77,19 @@ public class RetryInvoker implements Invoker {
             }
 
             try {
-                return chain.invoke(context);
+                Object result = chain.invoke(context);
+                LOGGER.debug("{}#{} succeed after {} retries"
+                        , context.getTarget().getClass().getSimpleName()
+                        , context.getMethod().getName()
+                        , retry);
+                return result;
             } catch (Exception t) {
                 latestFailure = t;
+                LOGGER.trace("{}#{} failed retry[{}], exception: {}"
+                        , context.getTarget().getClass().getSimpleName()
+                        , context.getMethod().getName()
+                        , retry
+                        , latestFailure.getMessage());
 
                 // AbortOn has priority on RetryOn
                 
@@ -82,6 +98,9 @@ public class RetryInvoker implements Invoker {
                 // - or if received throwable was configured to stop retry executions 
                 boolean shouldStopExecution = CircuitBreakerOpenException.class.isInstance(latestFailure) || Exceptions.isAssignableToAnyOf(cfg.getAbortOn(), latestFailure);
                 if (shouldStopExecution) {
+                    LOGGER.trace("exception[{}] makes the retry process to stop at retry[{}]"
+                            , latestFailure.getClass().getSimpleName()
+                            , retry);
                     break;
                 }
 
@@ -90,6 +109,9 @@ public class RetryInvoker implements Invoker {
                 // - or if received throwable was configured to retry executions 
                 boolean continueExecution = TimeoutException.class.isInstance(latestFailure) || Exceptions.isAssignableToAnyOf(cfg.getRetryOn(), latestFailure);
                 if (!continueExecution) {
+                    LOGGER.trace("unexpected exception[{}] makes the retry process to stop at retry[{}]"
+                            , latestFailure.getClass().getSimpleName()
+                            , retry);
                     break;
                 }
             }
@@ -98,6 +120,12 @@ public class RetryInvoker implements Invoker {
             ended = (retry > cfg.getMaxRetries());
         } while (!ended);
 
+        LOGGER.debug("{}#{} failed after {} retries, exception: {}"
+                , context.getTarget().getClass().getSimpleName()
+                , context.getMethod().getName()
+                , retry
+                , latestFailure.getMessage());
+        LOGGER.trace("detailled failure exception", latestFailure);
         throw latestFailure;
     }
 

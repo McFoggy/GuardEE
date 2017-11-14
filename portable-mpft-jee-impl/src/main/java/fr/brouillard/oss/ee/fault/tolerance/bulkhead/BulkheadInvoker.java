@@ -65,18 +65,7 @@ public class BulkheadInvoker implements Invoker {
             throw new BulkheadException("cannot acquire a slot in bulkhead waiting queue");
         }
         
-        return mes.submit(() -> {
-            if (bulkhead.acquireExecution()) {
-                try {
-                    return chain.invoke(context);
-                } finally {
-                    bulkhead.releaseExecution();
-                    bulkhead.acquireWaiting();
-                }
-            } else {
-                throw new BulkheadException("could not acquire execution slot for synchronous invocation");
-            }
-        });
+        return mes.submit(() -> callSynchronously(bulkhead, context, chain));
     }
 
     private Object callSynchronously(BulkheadContext bulkhead, InvocationContext context, InvokerChain chain) throws Exception {
