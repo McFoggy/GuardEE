@@ -40,7 +40,7 @@ dependencies {
 | Fallback tests | :heavy_check_mark: |
 | CircuitBreaker tests | :heavy_check_mark: |
 | Config tests | :x: |
-| Bulkhead tests | :x: |
+| Bulkhead tests | :heavy_check_mark: |
 | Asynchronous tests | :x: |
 
 ## Build & Test
@@ -67,7 +67,7 @@ example with filtering on Retry tests: `mvn clean install -Dit.test=Retry*`
 
 ### Launch tests on external server
 ````
-mvn clean install -Dremote=wildfly
+mvn clean install -Dserver=wildfly-remote
 ````
 
 ## Branch policy

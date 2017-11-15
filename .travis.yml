@@ -11,7 +11,7 @@ before_install:
 - chmod a+x ./mvnw
 
 script:
-- ./mvnw clean install -DskipTests
+- ./mvnw clean install -DskipTests -Dskip.server=true
 - ./mvnw verify "-Dit.test=Retry*, Timeout*, CircuitBreaker*, Fallback*, Bulkhead*"
 
 after_failure:

@@ -39,11 +39,15 @@
         <version.shrinkwrap>1.2.6</version.shrinkwrap>
         <version.shrinkwrap.resolver>2.2.4</version.shrinkwrap.resolver>
         <arquillian.qualifier>wildfly</arquillian.qualifier>
-        
+
         <server.username>admin</server.username>
         <server.password>a</server.password>
         <server.ip>localhost</server.ip>
         <server.managementPort>9990</server.managementPort>
+
+        <version.wildfly>10.1.0.Final</version.wildfly>
+        
+        <skip.server>false</skip.server>
     </properties>
 
     <build>
@@ -63,11 +67,6 @@
                             <systemPropertyVariables>
                                 <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
                                 <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
-                                <chameleon.distribution.dir>${project.build.directory}/distribution</chameleon.distribution.dir>
-                                <server.username>${server.username}</server.username>
-                                <server.password>${server.password}</server.password>
-                                <server.ip>${server.ip}</server.ip>
-                                <server.managementPort>${server.managementPort}</server.managementPort>
                             </systemPropertyVariables>
                             <dependenciesToScan>
                                 <dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck
@@ -160,6 +159,114 @@
 
     <profiles>
         <profile>
+            <id>local-wildfly</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>server</name>
+                    <value>wildfly-local</value>
+                </property>
+            </activation>
+            <properties>
+                <arquillian.qualifier>remote-wildfly</arquillian.qualifier>
+
+                <!-- Version of WildFly Maven Plugin, used for modifying the configuration via CLI calls -->
+                <version.wildfly.maven.plugin>1.1.0.Alpha5</version.wildfly.maven.plugin>
+                <serverRoot>${project.build.directory}/wildfly-${version.wildfly}</serverRoot>
+                <serverProfile>standalone.xml</serverProfile>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <configuration>
+                            <skip>${skip.server}</skip>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>unpack-wildfly</id>
+                                <phase>process-test-resources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.wildfly</groupId>
+                                            <artifactId>wildfly-dist</artifactId>
+                                            <version>${version.wildfly}</version>
+                                            <type>zip</type>
+                                            <overWrite>true</overWrite> <!-- always start with a fresh configuration -->
+                                            <outputDirectory>${project.build.directory}</outputDirectory>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-maven-plugin</artifactId>
+                        <version>${version.wildfly.maven.plugin}</version>
+                        <configuration>
+                            <skip>${skip.server}</skip>
+                            <jbossHome>${serverRoot}</jbossHome>
+                            <serverConfig>${serverProfile}</serverConfig>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>start-and-increase-default-managed-execution-pool</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                    <goal>execute-commands</goal>
+                                </goals>
+                                <configuration>
+                                    <execute-commands>
+                                        <commands>
+                                            <command>/subsystem=ee/managed-executor-service=default/:write-attribute(name=core-threads,value=10)
+                                            </command>
+                                            <command>/subsystem=ee/managed-executor-service=default/:write-attribute(name=max-threads,value=20)
+                                            </command>
+                                            <command>/subsystem=ee/managed-executor-service=default/:write-attribute(name=queue-length,value=50)
+                                            </command>
+                                            <command>/:reload</command>
+                                        </commands>
+                                    </execute-commands>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>tear-down-server</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>shutdown</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${version.plugin.failsafe}</version>
+                        <executions>
+                            <execution>
+                                <id>tests</id>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <server.username>${server.username}</server.username>
+                                        <server.password>${server.password}</server.password>
+                                        <server.ip>${server.ip}</server.ip>
+                                        <server.managementPort>${server.managementPort}</server.managementPort>
+                                        <wildfly.version>${version.wildfly}</wildfly.version>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>dump-wars</id>
             <build>
                 <plugins>
@@ -187,7 +294,7 @@
                 </property>
             </activation>
             <properties>
-                <arquillian.qualifier>remote-wildfly-10</arquillian.qualifier>
+                <arquillian.qualifier>remote-wildfly</arquillian.qualifier>
             </properties>
         </profile>
         <profile>
