@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
+import javax.enterprise.concurrent.ManagedThreadFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
@@ -31,6 +32,7 @@ import fr.brouillard.oss.ee.fault.tolerance.config.BulkheadContext;
 import fr.brouillard.oss.ee.fault.tolerance.config.Configurator;
 import fr.brouillard.oss.ee.fault.tolerance.impl.Invoker;
 import fr.brouillard.oss.ee.fault.tolerance.impl.InvokerChain;
+import fr.brouillard.oss.ee.fault.tolerance.misc.DelegateFuture;
 
 @ApplicationScoped
 public class BulkheadInvoker implements Invoker {
@@ -41,6 +43,8 @@ public class BulkheadInvoker implements Invoker {
     
     @Resource
     ManagedExecutorService mes;
+    
+    ManagedThreadFactory mtf;
     
     @Override
     public Object invoke(InvocationContext context, InvokerChain chain) throws Exception {
@@ -65,7 +69,13 @@ public class BulkheadInvoker implements Invoker {
             throw new BulkheadException("cannot acquire a slot in bulkhead waiting queue");
         }
         
-        return mes.submit(() -> callSynchronously(bulkhead, context, chain));
+        return new DelegateFuture(mes.submit(() -> {
+            try {
+                return callSynchronouslyWithWait(bulkhead, context, chain);
+            } finally {
+                bulkhead.releaseWaiting();
+            }
+        }));
     }
 
     private Object callSynchronously(BulkheadContext bulkhead, InvocationContext context, InvokerChain chain) throws Exception {
@@ -74,7 +84,18 @@ public class BulkheadInvoker implements Invoker {
                 return chain.invoke(context);
             } finally {
                 bulkhead.releaseExecution();
-                bulkhead.releaseWaiting();
+            }
+        } else {
+            throw new BulkheadException("could not acquire execution slot for synchronous invocation");
+        }
+    }
+    
+    private Object callSynchronouslyWithWait(BulkheadContext bulkhead, InvocationContext context, InvokerChain chain) throws Exception {
+        if (bulkhead.acquireExecutionWithWait()) {
+            try {
+                return chain.invoke(context);
+            } finally {
+                bulkhead.releaseExecution();
             }
         } else {
             throw new BulkheadException("could not acquire execution slot for synchronous invocation");

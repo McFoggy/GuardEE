@@ -94,6 +94,18 @@ public class BulkheadContext {
             }
             return executionAllowed;
         } catch (InterruptedException ie) {
+            LOGGER.debug("[EXECUTE][FAILED] by interruption {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
+            return false;
+        }
+    }
+    
+    public boolean acquireExecutionWithWait() {
+        try {
+            bulkheadSemaphore.acquire();
+            LOGGER.debug("[EXECUTE][PASSED] {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
+            return true;
+        } catch (InterruptedException ie) {
+            LOGGER.debug("[EXECUTE][FAILED] by interruption {}::{}, {}", passedWaiting.get(), passedExecuting.get(), this);
             return false;
         }
     }

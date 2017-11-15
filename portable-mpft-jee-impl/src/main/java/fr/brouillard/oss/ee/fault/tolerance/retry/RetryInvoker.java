@@ -17,7 +17,8 @@ package fr.brouillard.oss.ee.fault.tolerance.retry;
 
 import java.time.Duration;
 import java.util.Random;
-import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
@@ -32,6 +33,7 @@ import fr.brouillard.oss.ee.fault.tolerance.config.Configurator;
 import fr.brouillard.oss.ee.fault.tolerance.config.RetryContext;
 import fr.brouillard.oss.ee.fault.tolerance.impl.Invoker;
 import fr.brouillard.oss.ee.fault.tolerance.impl.InvokerChain;
+import fr.brouillard.oss.ee.fault.tolerance.misc.DelegateFuture;
 import fr.brouillard.oss.ee.fault.tolerance.misc.Exceptions;
 
 public class RetryInvoker implements Invoker {
@@ -51,7 +53,7 @@ public class RetryInvoker implements Invoker {
 
         boolean ended = true;
         int retry = 0;
-        Exception latestFailure = null;
+        Throwable latestFailure = null;
 
         long jitterInMillis = 0;
         long durationInMillis = Duration.of(cfg.getMaxDuration(), cfg.getDurationUnit()).toMillis();
@@ -69,7 +71,6 @@ public class RetryInvoker implements Invoker {
                 } catch (InterruptedException e) {
                 }
             }
-            String uuid = UUID.randomUUID().toString();
 
             long now = System.currentTimeMillis();
             if (now > durationExpirationTime) {
@@ -78,6 +79,14 @@ public class RetryInvoker implements Invoker {
 
             try {
                 Object result = chain.invoke(context);
+                
+                if (result instanceof DelegateFuture) {
+                    // check no exception occured on the future
+                    DelegateFuture<?> fr = (DelegateFuture<?>) result;
+                    if (fr.isDone()) {
+                        fr.get();
+                    }
+                }
                 LOGGER.debug("{}#{} succeed after {} retries"
                         , context.getTarget().getClass().getSimpleName()
                         , context.getMethod().getName()
@@ -85,6 +94,9 @@ public class RetryInvoker implements Invoker {
                 return result;
             } catch (Exception t) {
                 latestFailure = t;
+                if (t instanceof ExecutionException) {
+                    latestFailure = (Exception) t.getCause();
+                }
                 LOGGER.trace("{}#{} failed retry[{}], exception: {}"
                         , context.getTarget().getClass().getSimpleName()
                         , context.getMethod().getName()
@@ -126,7 +138,15 @@ public class RetryInvoker implements Invoker {
                 , retry
                 , latestFailure.getMessage());
         LOGGER.trace("detailled failure exception", latestFailure);
-        throw latestFailure;
+        
+        if (latestFailure instanceof Exception) {
+            throw (Exception)latestFailure;
+        } else if (latestFailure instanceof Error) {
+            throw (Error)latestFailure;
+        } else {
+            // should never happen
+            throw new IllegalStateException(latestFailure);
+        }
     }
 
     private long computeJitterInMillis(RetryContext cfg) {
