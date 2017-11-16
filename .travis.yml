@@ -12,7 +12,7 @@ before_install:
 
 install: ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -Dskip.server=true -B -V 
 
-script: ./mvnw verify "-Dit.test=Retry*, Timeout*, CircuitBreaker*, Fallback*, Bulkhead*"
+script: ./mvnw verify
 
 after_failure:
 - find target/it -name server.log -exec echo {} \; -exec cat {} \;

@@ -1,0 +1,51 @@
+<!--
+
+    Copyright © 2017 Matthieu Brouillard [http://oss.brouillard.fr/portable-mpft-jee] (matthieu@brouillard.fr)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="MP FaultTolerance" verbose="1" >
+    <test name="TCK Supported Features">
+        <classes>
+            <!-- Bulkhead -->
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.bulkhead.BulkheadAsynchTest"/>
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.bulkhead.BulkheadFutureTest"/>
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.bulkhead.BulkheadSynchRetryTest"/>
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.bulkhead.BulkheadSynchTest"/>
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.bulkhead.BulkheadAsynchRetryTest">
+                <methods>
+                    <exclude name="testBulkheadMethodAsynchronousRetry55Trip"/>
+                </methods>
+            </class>
+            
+            <!-- CircuitBreaker -->
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.CircuitBreakerRetryTest"/>
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.CircuitBreakerTest"/>
+
+            <!-- Fallback -->
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.FallbackTest"/>
+
+            <!-- Retry -->
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.RetryConditionTest"/>
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.RetryTest"/>
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.RetryTimeoutTest"/>
+
+            <!-- Timeout -->
+            <class name="org.eclipse.microprofile.fault.tolerance.tck.TimeoutTest"/>
+
+        </classes>
+    </test>
+</suite>

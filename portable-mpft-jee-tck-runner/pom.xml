@@ -48,6 +48,8 @@
         <version.wildfly>10.1.0.Final</version.wildfly>
         
         <skip.server>false</skip.server>
+        
+        <test.suite>src/test/testng.xml</test.suite>
     </properties>
 
     <build>
@@ -68,13 +70,16 @@
                                 <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
                                 <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
                             </systemPropertyVariables>
-                            <dependenciesToScan>
-                                <dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck
-                                </dependency>
-                            </dependenciesToScan>
-                            <includes>
-                                <include>**/*.java</include>
-                            </includes>
+                            <!--<dependenciesToScan>-->
+                                <!--<dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck-->
+                                <!--</dependency>-->
+                            <!--</dependenciesToScan>-->
+                            <!--<includes>-->
+                                <!--<include>**/*.java</include>-->
+                            <!--</includes>-->
+                            <suiteXmlFiles>
+                                <suiteXmlFile>${test.suite}</suiteXmlFile>
+                            </suiteXmlFiles>
                         </configuration>
                     </execution>
                     <execution>
