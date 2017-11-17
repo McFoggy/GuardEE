@@ -46,12 +46,11 @@
         <server.managementPort>9990</server.managementPort>
 
         <version.wildfly>10.1.0.Final</version.wildfly>
-        
+
         <skip.server>false</skip.server>
-        
+
         <test.suite>src/test/testng.xml</test.suite>
     </properties>
-
     <build>
         <plugins>
             <plugin>
@@ -71,11 +70,11 @@
                                 <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
                             </systemPropertyVariables>
                             <!--<dependenciesToScan>-->
-                                <!--<dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck-->
-                                <!--</dependency>-->
+                            <!--<dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck-->
+                            <!--</dependency>-->
                             <!--</dependenciesToScan>-->
                             <!--<includes>-->
-                                <!--<include>**/*.java</include>-->
+                            <!--<include>**/*.java</include>-->
                             <!--</includes>-->
                             <suiteXmlFiles>
                                 <suiteXmlFile>${test.suite}</suiteXmlFile>
@@ -163,6 +162,50 @@
     </dependencies>
 
     <profiles>
+        <profile>
+            <id>testng-by-scan</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${version.plugin.failsafe}</version>
+                        <executions>
+                            <execution>
+                                <id>tests</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
+                                        <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
+                                    </systemPropertyVariables>
+                                    <dependenciesToScan>
+                                        <dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck</dependency>
+                                    </dependenciesToScan>
+                                    <includes>
+                                        <include>**/*.java</include>
+                                    </includes>
+                                    <!--<suiteXmlFiles>-->
+                                    <!--<suiteXmlFile>${test.suite}</suiteXmlFile>-->
+                                    <!--</suiteXmlFiles>-->
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>verify</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+
+        </profile>
         <profile>
             <id>local-wildfly</id>
             <activation>
