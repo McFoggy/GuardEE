@@ -44,8 +44,6 @@ public class BulkheadInvoker implements Invoker {
     @Resource
     ManagedExecutorService mes;
     
-    ManagedThreadFactory mtf;
-    
     @Override
     public Object invoke(InvocationContext context, InvokerChain chain) throws Exception {
         Optional<BulkheadContext> optBulkhead = config.bulkhead(context);
