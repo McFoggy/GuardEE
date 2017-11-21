@@ -26,16 +26,22 @@ public class AnnotationFinder {
     public static <T extends Annotation> AnnotationFindResult<T> find(InvocationContext ic, Class<T> annotationClass) {
         Method invokedMethod = ic.getMethod();
         Object caller = ic.getTarget();
-        
-        String searchKey = caller.getClass().getName() + "/" + invokedMethod.getName();
+        Class<?> callerClass = caller.getClass();
+
+        return find(annotationClass, callerClass, invokedMethod);
+    }
+
+    public static <T extends Annotation> AnnotationFindResult<T> find(Class<T> annotationClass, Class<?> classOfCall, Method invokedMethod) {
+        String searchKey = classOfCall.getName() + "/" + invokedMethod.getName();
 
         // the method is directly declared on the caller
-        if (Arrays.asList(caller.getClass().getDeclaredMethods()).contains(invokedMethod)) {
+        if (Arrays.asList(classOfCall.getDeclaredMethods()).contains(invokedMethod)) {
             T annotation = invokedMethod.getAnnotation(annotationClass);
             return new AnnotationFindResult(searchKey, searchKey, annotation);
-        };
-        
-        return findOnClass(searchKey, caller.getClass(), invokedMethod, annotationClass);
+        }
+        ;
+
+        return findOnClass(searchKey, classOfCall, invokedMethod, annotationClass);
     }
 
     private static <T extends Annotation> AnnotationFindResult<T> findOnClass(String searchKey, Class<?> aClass, Method invokedMethod, Class<T> annotationClass) {
