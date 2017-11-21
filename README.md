@@ -1,6 +1,6 @@
-# Microprofile Fault Tolerance for JEE
+# GuardEE :: a Microprofile Fault Tolerance for JEE7
 
-[![Build Status](https://travis-ci.org/McFoggy/portable-mpft-jee.svg?branch=master)](https://travis-ci.org/McFoggy/portable-mpft-jee)
+[![Build Status](https://travis-ci.org/McFoggy/GuardEE.svg?branch=master)](https://travis-ci.org/McFoggy/GuardEE)
 
 This project aim is to provide a portable JEE 7 compliant extension implementing [Microprofile Fault Tolerance 1.0 specification](https://projects.eclipse.org/projects/technology.microprofile/releases/fault-tolerance-1.0).
 
@@ -17,7 +17,7 @@ As a portable extension, you just have to bring the implementation in your class
 </dependency>
 <dependency>
     <groupId>fr.brouillard.oss.jee</groupId>
-    <artifactId>mpft-jee-impl</artifactId>
+    <artifactId>guardee-impl</artifactId>
     <version>X.Y.Z</version>
 </dependency>
 ````
@@ -26,7 +26,7 @@ As a portable extension, you just have to bring the implementation in your class
 ````
 dependencies {
     compile 'org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-api:1.0'
-    compile 'fr.brouillard.oss.jee:mpft-jee-impl:X.Y.Z'
+    compile 'fr.brouillard.oss.jee:guardee-impl:X.Y.Z'
 }
 ````
 

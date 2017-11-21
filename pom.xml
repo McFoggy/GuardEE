@@ -21,12 +21,12 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.brouillard.oss.jee</groupId>
-    <artifactId>portable-mpft-jee-parent</artifactId>
+    <artifactId>guardee-parent</artifactId>
     <version>0</version>
     <packaging>pom</packaging>
 
     <name>${project.artifactId}</name>
-    <description>Microprofile Fault Tolerant portable JEE compliant implementation parent pom</description>
+    <description>GuardEE :: a Microprofile Fault Tolerant portable JEE compliant implementation parent pom</description>
     <url>https://github.com/McFoggy/portable-mpft-jee</url>
     <inceptionYear>2017</inceptionYear>
 
@@ -79,8 +79,8 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     </developers>
 
     <modules>
-        <module>portable-mpft-jee-impl</module>
-        <module>portable-mpft-jee-tck-runner</module>
+        <module>impl</module>
+        <module>tck-runner</module>
     </modules>
 
     <dependencyManagement>
