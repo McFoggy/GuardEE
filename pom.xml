@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright © 2017 Matthieu Brouillard [http://oss.brouillard.fr/portable-mpft-jee] (matthieu@brouillard.fr)
+    Copyright © 2017 Matthieu Brouillard [http://oss.brouillard.fr/GuardEE] (matthieu@brouillard.fr)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <scm>
         <connection>scm:git:https://github.com/McFoggy/portable-mpft-jee.git</connection>
         <developerConnection>scm:git:https://github.com/McFoggy/portable-mpft-jee.git</developerConnection>
-        <url>http://oss.brouillard.fr/portable-mpft-jee</url>
+        <url>http://oss.brouillard.fr/GuardEE</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -133,7 +133,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                 <configuration>
                     <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
                     <properties>
-                        <owner>Matthieu Brouillard [http://oss.brouillard.fr/portable-mpft-jee]</owner>
+                        <owner>Matthieu Brouillard [http://oss.brouillard.fr/GuardEE]</owner>
                         <email>matthieu@brouillard.fr</email>
                     </properties>
                     <excludes>
