@@ -2,16 +2,8 @@
 <arquillian xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns="http://jboss.org/schema/arquillian"
             xsi:schemaLocation="http://jboss.org/schema/arquillian http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
-    <container qualifier="wildfly" default="true">
-        <configuration>
-            <property name="chameleonTarget">wildfly:${wildfly.version:10.1.0.Final}:managed</property>
-            <property name="chameleonDistributionDownloadFolder">${chameleon.distribution.dir}</property>
-            <property name="serverConfig">standalone.xml</property>
-        </configuration>
-    </container>
     <container qualifier="remote-wildfly">
         <configuration>
-            <property name="chameleonTarget">wildfly:${wildfly.version:10.1.0.Final}:remote</property>
             <property name="username">${server.username:admin}</property>
             <property name="password">${server.password:a}</property>
             <property name="managementAddress">${server.ip:localhost}</property>

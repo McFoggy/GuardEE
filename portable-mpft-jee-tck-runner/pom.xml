@@ -38,6 +38,7 @@
         <version.arquillian_universe>1.1.13.7</version.arquillian_universe>
         <version.shrinkwrap>1.2.6</version.shrinkwrap>
         <version.shrinkwrap.resolver>2.2.4</version.shrinkwrap.resolver>
+        
         <arquillian.qualifier>wildfly</arquillian.qualifier>
 
         <server.username>admin</server.username>
@@ -46,55 +47,25 @@
         <server.managementPort>9990</server.managementPort>
 
         <version.wildfly>10.1.0.Final</version.wildfly>
+        <version.wildfly.arquillian>2.0.1.Final</version.wildfly.arquillian>
+        <version.arquillian_core>1.1.14.Final</version.arquillian_core>
 
         <skip.server>false</skip.server>
-
-        <test.suite>src/test/testng.xml</test.suite>
     </properties>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${version.plugin.failsafe}</version>
-                <executions>
-                    <execution>
-                        <id>tests</id>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>integration-test</goal>
-                        </goals>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
-                                <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
-                            </systemPropertyVariables>
-                            <!--<dependenciesToScan>-->
-                            <!--<dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck-->
-                            <!--</dependency>-->
-                            <!--</dependenciesToScan>-->
-                            <!--<includes>-->
-                            <!--<include>**/*.java</include>-->
-                            <!--</includes>-->
-                            <suiteXmlFiles>
-                                <suiteXmlFile>${test.suite}</suiteXmlFile>
-                            </suiteXmlFiles>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>verify</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>${version.arquillian_core}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>            
             <dependency>
                 <groupId>org.arquillian</groupId>
                 <artifactId>arquillian-universe</artifactId>
@@ -149,12 +120,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.arquillian.universe</groupId>
-            <artifactId>arquillian-chameleon</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.jboss.shrinkwrap.resolver</groupId>
             <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
             <scope>test</scope>
@@ -164,6 +129,54 @@
     <profiles>
         <profile>
             <id>testng-by-scan</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${version.plugin.failsafe}</version>
+                        <executions>
+                            <execution>
+                                <id>tests</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                                <configuration>
+                                    <argLine>-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=y</argLine>
+                                    <systemPropertyVariables>
+                                        <arquillian.archive.dump>d:/</arquillian.archive.dump>
+                                        <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
+                                        <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
+                                    </systemPropertyVariables>
+                                    <dependenciesToScan>
+                                        <dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck</dependency>
+                                    </dependenciesToScan>
+                                    <includes>
+                                        <include>**/*.java</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>verify</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>testng-suite</id>
+            <properties>
+                <test.suite>src/test/testng.xml</test.suite>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -182,15 +195,9 @@
                                         <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
                                         <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
                                     </systemPropertyVariables>
-                                    <dependenciesToScan>
-                                        <dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck</dependency>
-                                    </dependenciesToScan>
-                                    <includes>
-                                        <include>**/*.java</include>
-                                    </includes>
-                                    <!--<suiteXmlFiles>-->
-                                    <!--<suiteXmlFile>${test.suite}</suiteXmlFile>-->
-                                    <!--</suiteXmlFiles>-->
+                                    <suiteXmlFiles>
+                                        <suiteXmlFile>${test.suite}</suiteXmlFile>
+                                    </suiteXmlFiles>
                                 </configuration>
                             </execution>
                             <execution>
@@ -204,12 +211,10 @@
                     </plugin>
                 </plugins>
             </build>
-
         </profile>
         <profile>
             <id>local-wildfly</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
                 <property>
                     <name>server</name>
                     <value>wildfly-local</value>
@@ -223,6 +228,14 @@
                 <serverRoot>${project.build.directory}/wildfly-${version.wildfly}</serverRoot>
                 <serverProfile>standalone.xml</serverProfile>
             </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-remote</artifactId>
+                    <version>${version.wildfly.arquillian}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
             <build>
                 <plugins>
                     <plugin>
@@ -301,11 +314,13 @@
                                 <id>tests</id>
                                 <configuration>
                                     <systemPropertyVariables>
+                                        <arquillian.archive.dump>true</arquillian.archive.dump>
+                                        <mpft.jee.version>${jgitver.calculated_version}</mpft.jee.version>
+                                        <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
                                         <server.username>${server.username}</server.username>
                                         <server.password>${server.password}</server.password>
                                         <server.ip>${server.ip}</server.ip>
                                         <server.managementPort>${server.managementPort}</server.managementPort>
-                                        <wildfly.version>${version.wildfly}</wildfly.version>
                                     </systemPropertyVariables>
                                 </configuration>
                             </execution>
@@ -313,37 +328,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-        <profile>
-            <id>dump-wars</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${version.plugin.failsafe}</version>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <arquillian.archive.dump>${project.build.directory}/</arquillian.archive.dump>
-                                <arquillian.archive.add.beans.xml>true</arquillian.archive.add.beans.xml>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>remote-wildfly</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-                <property>
-                    <name>server</name>
-                    <value>wildfly-remote</value>
-                </property>
-            </activation>
-            <properties>
-                <arquillian.qualifier>remote-wildfly</arquillian.qualifier>
-            </properties>
         </profile>
         <profile>
             <id>glassfish</id>
@@ -358,5 +342,28 @@
                 <arquillian.qualifier>glassfish</arquillian.qualifier>
             </properties>
         </profile>
+        <profile>
+            <id>remote-wildfly</id>
+            <activation>
+                <property>
+                    <name>server</name>
+                    <value>wildfly-remote</value>
+                </property>
+            </activation>
+            <properties>
+                <arquillian.qualifier>remote-wildfly</arquillian.qualifier>
+    
+                <!-- Version of WildFly Maven Plugin, used for modifying the configuration via CLI calls -->
+                <version.wildfly.maven.plugin>1.1.0.Alpha5</version.wildfly.maven.plugin>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-remote</artifactId>
+                    <version>${version.wildfly.arquillian}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>        
     </profiles>
 </project>
