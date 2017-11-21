@@ -29,13 +29,17 @@ import java.io.File;
 
 public class JEEFaultToleranceTCKArchiveProcessor implements ApplicationArchiveProcessor {
 
+    public static final String MPFT_JEE_VERSION = "mpft.jee.version";
+
     @Override
     public void process(Archive<?> applicationArchive, TestClass testClass) {
         if (applicationArchive instanceof WebArchive) {
             WebArchive war = (WebArchive) applicationArchive;
-            String implVersion = System.getProperty("mpft.jee.version");
+            String implVersion = System.getProperty(MPFT_JEE_VERSION);
             if (implVersion != null && implVersion.trim().length() > 0) {
                 String gav = String.format("fr.brouillard.oss.jee:portable-mpft-jee-impl:%s", implVersion);
+
+                System.out.println("adding " + gav + " dependencies to " + war.getName());
 
                 File[] jeeImplAndDeps = Maven.resolver().resolve(gav).withTransitivity().asFile();
                 war.addAsLibraries(jeeImplAndDeps);
@@ -48,6 +52,8 @@ public class JEEFaultToleranceTCKArchiveProcessor implements ApplicationArchiveP
                 if (dumpPath != null) {
                     war.as(ZipExporter.class).exportTo(new File(dumpPath + System.currentTimeMillis() + "-" + war.getName()), true);
                 }
+            } else {
+                throw new RuntimeException("could not find suitable version of project using System property: " + MPFT_JEE_VERSION);
             }
         }
     }
