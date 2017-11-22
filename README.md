@@ -2,7 +2,8 @@
 
 ![GuardEE icon](images/guardee_blue_small.png) 
 
-GuardEE is there to provide a portable JEE7 compliant extension implementing [Microprofile Fault Tolerance 1.0 specification](https://projects.eclipse.org/projects/technology.microprofile/releases/fault-tolerance-1.0).
+GuardEE is a _no-deps_ portable JEE7 extension implementing [Microprofile Fault Tolerance 1.0 specification](https://projects.eclipse.org/projects/technology.microprofile/releases/fault-tolerance-1.0).
+It leverages JEE & CDI features to implement the specification.
 
 ## Usage
 
