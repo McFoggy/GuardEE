@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/McFoggy/GuardEE.svg?branch=master)](https://travis-ci.org/McFoggy/GuardEE)
 
+
+![GuardEE icon](images/guardee_blue_small.png)
+
 This project aim is to provide a portable JEE 7 compliant extension implementing [Microprofile Fault Tolerance 1.0 specification](https://projects.eclipse.org/projects/technology.microprofile/releases/fault-tolerance-1.0).
 
 ## Usage
