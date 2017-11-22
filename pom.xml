@@ -27,7 +27,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <name>${project.artifactId}</name>
     <description>GuardEE :: a Microprofile Fault Tolerant portable JEE compliant implementation parent pom</description>
-    <url>https://github.com/McFoggy/portable-mpft-jee</url>
+    <url>https://github.com/McFoggy/GuardEE</url>
     <inceptionYear>2017</inceptionYear>
 
     <licenses>
@@ -39,15 +39,15 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/McFoggy/portable-mpft-jee.git</connection>
-        <developerConnection>scm:git:https://github.com/McFoggy/portable-mpft-jee.git</developerConnection>
+        <connection>scm:git:https://github.com/McFoggy/GuardEE.git</connection>
+        <developerConnection>scm:git:https://github.com/McFoggy/GuardEE.git</developerConnection>
         <url>http://oss.brouillard.fr/GuardEE</url>
         <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/McFoggy/portable-mpft-jee/issues</url>
+        <url>https://github.com/McFoggy/GuardEE/issues</url>
     </issueManagement>
 
     <properties>
