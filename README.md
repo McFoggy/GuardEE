@@ -41,8 +41,9 @@ dependencies {
 | Fallback tests | :heavy_check_mark: |
 | CircuitBreaker tests | :heavy_check_mark: |
 | Config tests | :x: |
+| Invalid tests | blocked by wildfly/wildfly-arquillian#116 |
 | Bulkhead tests | :heavy_check_mark: |
-| Asynchronous tests | :x: |
+| Asynchronous tests | no TCK tests in `1.0` |
 
 ## Build & Test
 
