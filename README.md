@@ -46,14 +46,14 @@ dependencies {
 
 ## Build & Test
 
-### Build and run tests against the entire TCK
+### Build and run tests
 ````
-mvn clean install -Dit.test=Retry*
+mvn clean install
 ````
 
 ### Filter the TCKs tests
 ````
-mvn clean install -Dit.test=FILTER
+mvn clean install -Dit.test=FILTER -Ptestng-scan -Dserver=widfly-local
 ````
 
 Where `FILTER` is one of :
@@ -68,7 +68,7 @@ example with filtering on Retry tests: `mvn clean install -Dit.test=Retry*`
 
 ### Launch tests on external server
 ````
-mvn clean install -Dserver=wildfly-remote
+mvn clean install -Ptestng-scan -Dserver=wildfly-remote
 ````
 
 ## Branch policy
