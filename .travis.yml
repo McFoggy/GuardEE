@@ -10,7 +10,7 @@ cache:
 before_install:
 - chmod a+x ./mvnw
 
-install: ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -Dskip.server=true -B -V 
+install: ./mvnw clean install -DskipTests=true -Dmaven.javadoc.skip=true -Dskip.server=true -B -V 
 
 script: ./mvnw verify
 

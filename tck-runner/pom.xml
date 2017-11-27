@@ -122,7 +122,7 @@
         <profile>
             <id>remote-wildfly</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
                 <property>
                     <name>server</name>
                     <value>wildfly-remote</value>
@@ -143,7 +143,7 @@
         <profile>
             <id>testng-scan</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <plugins>
@@ -195,7 +195,7 @@
         <profile>
             <id>testng-suite</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
                 <test.suite>src/test/testng.xml</test.suite>
@@ -247,7 +247,7 @@
         <profile>
             <id>local-wildfly</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <activeByDefault>true</activeByDefault>
                 <property>
                     <name>server</name>
                     <value>wildfly-local</value>
@@ -330,27 +330,38 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${version.plugin.failsafe}</version>
-                        <executions>
-                            <execution>
-                                <id>tests</id>
-                                <configuration>
-                                    <systemPropertyVariables>
-                                        <server.username>${server.username}</server.username>
-                                        <server.password>${server.password}</server.password>
-                                        <server.ip>${server.ip}</server.ip>
-                                        <server.managementPort>${server.managementPort}</server.managementPort>
-                                        <wildfly.version>${version.wildfly}</wildfly.version>
-                                    </systemPropertyVariables>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+                    <!--<plugin>-->
+                        <!--<groupId>org.apache.maven.plugins</groupId>-->
+                        <!--<artifactId>maven-failsafe-plugin</artifactId>-->
+                        <!--<version>${version.plugin.failsafe}</version>-->
+                        <!--<executions>-->
+                            <!--<execution>-->
+                                <!--<id>tests</id>-->
+                                <!--<configuration>-->
+                                    <!--<systemPropertyVariables>-->
+                                        <!--<guardee.version>${jgitver.calculated_version}</guardee.version>-->
+                                        <!--<arquillian.launch>${arquillian.qualifier}</arquillian.launch>-->
+
+                                        <!--<server.username>${server.username}</server.username>-->
+                                        <!--<server.password>${server.password}</server.password>-->
+                                        <!--<server.ip>${server.ip}</server.ip>-->
+                                        <!--<server.managementPort>${server.managementPort}</server.managementPort>-->
+                                        <!--<wildfly.version>${version.wildfly}</wildfly.version>-->
+                                    <!--</systemPropertyVariables>-->
+                                <!--</configuration>-->
+                            <!--</execution>-->
+                        <!--</executions>-->
+                    <!--</plugin>-->
                 </plugins>
             </build>
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-remote</artifactId>
+                    <version>${version.wildfly.arquillian}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
         </profile>
         <profile>
             <id>dump-wars</id>
