@@ -53,7 +53,7 @@ public class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
         );
     }
 
-    CircuitBreakerHandlerImpl(Class<? extends Throwable>[] failOn, long windowDurationInNanos, int volumeThreshold, double failureRatio, int successThreshold) {
+    public CircuitBreakerHandlerImpl(Class<? extends Throwable>[] failOn, long windowDurationInNanos, int volumeThreshold, double failureRatio, int successThreshold) {
         this.failOn = failOn;
         this.volumeThreshold = volumeThreshold;
         this.calls = new LimitedQueue<>(volumeThreshold);
@@ -82,7 +82,7 @@ public class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
         }
     }
 
-    void enter(int id) {
+    public void enter(int id) {
         try{
             System.out.println(String.format("[%d] before::enter - %s", id, state));
             enter();
@@ -95,7 +95,7 @@ public class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
         this.state = newState;
     }
 
-    void success(int id) {
+    public void success(int id) {
         try{
             System.out.println(String.format("[%d] before::success - %s", id, state));
             success();
@@ -192,7 +192,7 @@ public class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
      * Exposed for tests only, return the current circuit executions queue as a collection
      * @return the registered executions as a non null collection
      */
-    Collection<Execution> getExecutions() {
+    public Collection<Execution> getExecutions() {
         return new ArrayList<>(calls);
     }
 
@@ -267,7 +267,7 @@ public class CircuitBreakerHandlerImpl implements CircuitBreakerHandler {
     }
 
     /* visibility set to package for tests only */
-    static class Execution {
+    public static class Execution {
         private final long time;
         private final boolean success;
 

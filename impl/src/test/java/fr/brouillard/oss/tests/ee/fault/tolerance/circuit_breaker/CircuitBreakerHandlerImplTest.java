@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.ee.fault.tolerance.circuit_breaker;
+package fr.brouillard.oss.tests.ee.fault.tolerance.circuit_breaker;
 
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +21,9 @@ import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenExce
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import fr.brouillard.oss.ee.fault.tolerance.AdditionalAssertions;
+import fr.brouillard.oss.tests.ee.fault.tolerance.AdditionalAssertions;
+import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitBreakerHandlerImpl;
+import fr.brouillard.oss.ee.fault.tolerance.circuit_breaker.CircuitState;
 import fr.brouillard.oss.ee.fault.tolerance.config.Globals;
 
 public class CircuitBreakerHandlerImplTest {
