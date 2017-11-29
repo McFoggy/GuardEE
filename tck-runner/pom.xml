@@ -37,11 +37,9 @@
         <version.plugin.failsafe>2.19</version.plugin.failsafe>
         <version.arquillian_universe>1.1.13.7</version.arquillian_universe>
         <version.shrinkwrap>1.2.6</version.shrinkwrap>
-        <version.shrinkwrap.resolver>2.2.4</version.shrinkwrap.resolver>
 
         <version.wildfly.arquillian>2.0.1.Final</version.wildfly.arquillian>
-        <version.arquillian>1.1.14.Final</version.arquillian>
-        
+
         <server.username>admin</server.username>
         <server.password>a</server.password>
         <server.ip>localhost</server.ip>
@@ -94,6 +92,16 @@
             <artifactId>microprofile-fault-tolerance-tck</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-tck</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Tests dependencies -->
         <dependency>
@@ -141,7 +149,7 @@
             </dependencies>
         </profile>
         <profile>
-            <id>testng-scan</id>
+            <id>manual</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
@@ -159,21 +167,23 @@
                                     <goal>integration-test</goal>
                                 </goals>
                                 <configuration>
+                                    <!--<argLine>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000</argLine>-->
                                     <systemPropertyVariables>
                                         <guardee.version>${jgitver.calculated_version}</guardee.version>
                                         <arquillian.launch>${arquillian.qualifier}</arquillian.launch>
-                                        
+
                                         <!-- pass server parameters -->
                                         <server.username>${server.username}</server.username>
                                         <server.password>${server.password}</server.password>
                                         <server.ip>${server.ip}</server.ip>
                                         <server.managementPort>${server.managementPort}</server.managementPort>
-                                        
+
                                         <!-- wildfly specific parameters -->
                                         <wildfly.version>${version.wildfly}</wildfly.version>
                                     </systemPropertyVariables>
                                     <dependenciesToScan>
                                         <dependency>org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-tck</dependency>
+                                        <dependency>org.eclipse.microprofile.config:microprofile-config-tck</dependency>
                                     </dependenciesToScan>
                                     <includes>
                                         <include>**/*.java</include>
@@ -243,6 +253,29 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>weld</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <arquillian.qualifier>weld</arquillian.qualifier>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.container</groupId>
+                    <artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
+                    <version>1.0.0.Final</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.weld</groupId>
+                    <artifactId>weld-core</artifactId>
+                    <version>2.4.5.Final</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
         </profile>
         <profile>
             <id>local-wildfly</id>
@@ -331,26 +364,26 @@
                         </executions>
                     </plugin>
                     <!--<plugin>-->
-                        <!--<groupId>org.apache.maven.plugins</groupId>-->
-                        <!--<artifactId>maven-failsafe-plugin</artifactId>-->
-                        <!--<version>${version.plugin.failsafe}</version>-->
-                        <!--<executions>-->
-                            <!--<execution>-->
-                                <!--<id>tests</id>-->
-                                <!--<configuration>-->
-                                    <!--<systemPropertyVariables>-->
-                                        <!--<guardee.version>${jgitver.calculated_version}</guardee.version>-->
-                                        <!--<arquillian.launch>${arquillian.qualifier}</arquillian.launch>-->
+                    <!--<groupId>org.apache.maven.plugins</groupId>-->
+                    <!--<artifactId>maven-failsafe-plugin</artifactId>-->
+                    <!--<version>${version.plugin.failsafe}</version>-->
+                    <!--<executions>-->
+                    <!--<execution>-->
+                    <!--<id>tests</id>-->
+                    <!--<configuration>-->
+                    <!--<systemPropertyVariables>-->
+                    <!--<guardee.version>${jgitver.calculated_version}</guardee.version>-->
+                    <!--<arquillian.launch>${arquillian.qualifier}</arquillian.launch>-->
 
-                                        <!--<server.username>${server.username}</server.username>-->
-                                        <!--<server.password>${server.password}</server.password>-->
-                                        <!--<server.ip>${server.ip}</server.ip>-->
-                                        <!--<server.managementPort>${server.managementPort}</server.managementPort>-->
-                                        <!--<wildfly.version>${version.wildfly}</wildfly.version>-->
-                                    <!--</systemPropertyVariables>-->
-                                <!--</configuration>-->
-                            <!--</execution>-->
-                        <!--</executions>-->
+                    <!--<server.username>${server.username}</server.username>-->
+                    <!--<server.password>${server.password}</server.password>-->
+                    <!--<server.ip>${server.ip}</server.ip>-->
+                    <!--<server.managementPort>${server.managementPort}</server.managementPort>-->
+                    <!--<wildfly.version>${version.wildfly}</wildfly.version>-->
+                    <!--</systemPropertyVariables>-->
+                    <!--</configuration>-->
+                    <!--</execution>-->
+                    <!--</executions>-->
                     <!--</plugin>-->
                 </plugins>
             </build>

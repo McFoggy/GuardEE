@@ -15,4 +15,9 @@
             <property name="chameleonTarget">glassfish:4.1.2:managed</property>
         </configuration>
     </container>
+    <container qualifier="weld">
+        <configuration>
+            <property name="enableConversationScope">false</property>
+        </configuration>
+    </container>    
 </arquillian>

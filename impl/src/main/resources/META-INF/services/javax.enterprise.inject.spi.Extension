@@ -1,2 +1,2 @@
 fr.brouillard.oss.ee.fault.tolerance.cdi.FaultToleranceJEECDIExtension
-
+fr.brouillard.oss.ee.microprofile.config.cdi.GuardEEConfigExtension

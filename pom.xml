@@ -59,8 +59,11 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <version.plugin.enforcer>1.4.1</version.plugin.enforcer>
         <version.testng>6.9.9</version.testng>
         <version.microprofile-fault-tolerant>1.0</version.microprofile-fault-tolerant>
+        <version.microprofile-config>1.1</version.microprofile-config>
         <version.javaee>7.0</version.javaee>
         <version.slf4j-api>1.7.25</version.slf4j-api>
+        <version.arquillian>1.1.14.Final</version.arquillian>
+        <version.shrinkwrap.resolver>2.2.4</version.shrinkwrap.resolver>
 
         <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
         <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
@@ -113,6 +116,18 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                 <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
                 <artifactId>microprofile-fault-tolerance-tck</artifactId>
                 <version>${version.microprofile-fault-tolerant}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.microprofile.config</groupId>
+                <artifactId>microprofile-config-api</artifactId>
+                <version>${version.microprofile-config}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.microprofile.config</groupId>
+                <artifactId>microprofile-config-tck</artifactId>
+                <version>${version.microprofile-config}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
