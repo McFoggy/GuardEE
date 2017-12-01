@@ -1,3 +1,7 @@
 target/
 *.iml
 .title
+.settings/
+.project
+.classpath
+test-output/
