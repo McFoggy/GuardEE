@@ -5,6 +5,10 @@
 GuardEE is a _no-deps_ portable JEE7 extension implementing [Microprofile Fault Tolerance 1.0 specification](https://projects.eclipse.org/projects/technology.microprofile/releases/fault-tolerance-1.0).
 It leverages JEE & CDI features to implement the specification.
 
+> :warning:  
+> __Early versions of GuardEE requires a Java 8 runtime__  
+> :warning:
+
 ## Usage
 
 As a portable extension, you just have to bring the implementation in your classpath and you're done.
