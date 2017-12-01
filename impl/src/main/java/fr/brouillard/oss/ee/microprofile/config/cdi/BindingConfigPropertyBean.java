@@ -17,38 +17,43 @@ package fr.brouillard.oss.ee.microprofile.config.cdi;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.PassivationCapable;
-import javax.enterprise.util.AnnotationLiteral;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import fr.brouillard.oss.ee.microprofile.config.GuardEEConfigurator;
 
-public class ConfigPropertyBean<T> implements Bean<T>, PassivationCapable {
-    private final BeanManager beanManager;
-    private final Class<T> objectClass;
+public class BindingConfigPropertyBean<T> implements Bean<T>, PassivationCapable {
+    private final Class<T> of;
+    private final Set<Annotation> qualifiers;
+	private final Set<Type> types;
+	private final BindingConfigProperty bindingConfigProperty;
+	private final String name;
 
-    public ConfigPropertyBean(BeanManager bm, Class<T> objectClass) {
-        this.beanManager = bm;
-        this.objectClass = objectClass;
+    public BindingConfigPropertyBean(Class<T> of, BindingConfigProperty bcp) {
+        this.of = of;
+        this.bindingConfigProperty = bcp;
+        this.qualifiers = new HashSet<>(Arrays.asList(bcp, new ConfigPropertyAnnotationLiteral()));
+        this.types = new HashSet<>(Arrays.asList(of, Object.class));
+        
+        this.name = BindingConfigProperty.class.getName() + "_" + of.getClass() + "#" + bcp.hashCode();
     }
     
     @Override
     public Class<?> getBeanClass() {
-        return ConfigPropertyBean.class;
+        return of;
     }
 
     @Override
     public Set<InjectionPoint> getInjectionPoints() {
-        return Collections.EMPTY_SET;
+        return Collections.emptySet();
     }
 
     @Override
@@ -58,37 +63,40 @@ public class ConfigPropertyBean<T> implements Bean<T>, PassivationCapable {
 
     @Override
     public T create(CreationalContext<T> creationalContext) {
-        Set<Bean<?>> beans = beanManager.getBeans(InjectionPoint.class);
-        Bean<?> bean = beanManager.resolve(beans);
-        InjectionPoint ip = (InjectionPoint) beanManager.getReference(bean, InjectionPoint.class,  creationalContext);
-        Producers producers = (Producers) beanManager.getReference(bean, Producers.class,  creationalContext);
-        
-        if (ip == null) {
-            throw new IllegalStateException("cannot retrieve InjectionPoint from current CDI context");
-        }
-        if (producers == null) {
-            throw new IllegalStateException("cannot retrieve instance of Producers from current CDI context");
-        }
-
-        Annotated annotated = ip.getAnnotated();
-        Class<T> baseType = (Class<T>) annotated.getBaseType();
-        
-        return producers.getConfiguredValue(ip, baseType);
+    	return GuardEEConfigurator.getConfiguredValue(
+    			bindingConfigProperty.name()
+    			, bindingConfigProperty.defaultValue()
+    			, of
+    	);
+    	
+//        Set<Bean<?>> beans = beanManager.getBeans(InjectionPoint.class);
+//        Bean<?> bean = beanManager.resolve(beans);
+//
+//        InjectionPoint ip = (InjectionPoint) beanManager.getReference(bean, InjectionPoint.class,  creationalContext);
+//        
+//        if (ip == null) {
+//            throw new IllegalStateException("cannot retrieve InjectionPoint from current CDI context");
+//        }
+//        
+//        Annotated annotated = ip.getAnnotated();
+//        Class<T> baseType = (Class<T>) annotated.getBaseType();
+//        
+//        return Producers.getConfiguredValue(ip, baseType);
     }
 
     @Override
     public void destroy(T instance, CreationalContext<T> creationalContext) {
-
+    	creationalContext.release();
     }
 
     @Override
     public Set<Type> getTypes() {
-        return Collections.singleton(objectClass);
+        return types;
     }
 
     @Override
     public Set<Annotation> getQualifiers() {
-        return BEAN_QUALIFIERS;
+        return qualifiers;
     }
 
     @Override
@@ -98,7 +106,7 @@ public class ConfigPropertyBean<T> implements Bean<T>, PassivationCapable {
 
     @Override
     public String getName() {
-        return getId();
+        return name;
     }
 
     @Override
@@ -113,11 +121,6 @@ public class ConfigPropertyBean<T> implements Bean<T>, PassivationCapable {
 
     @Override
     public String getId() {
-        return ConfigPropertyBean.class.getName() + "_" + objectClass;
-    }
-    
-    private final static Set<Annotation> BEAN_QUALIFIERS = new HashSet<>();
-    static {
-        BEAN_QUALIFIERS.add(new ConfigPropertyAnnotationLiteral());
+        return name;
     }
 }

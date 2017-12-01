@@ -27,6 +27,7 @@ import java.util.Properties;
 
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class GuardEEConfigSources {
     public static Collection<ConfigSource> defaultConfigSources() {
         return DEFAULTS;
@@ -36,7 +37,7 @@ public class GuardEEConfigSources {
 
     public static final String CONFIG_ORDINAL = "config_ordinal";
     
-    private final static ConfigSource SYSTEM_PROPERTY_CONFIG_SOURCE = new DelegateHashMapConfigSource("System properties", new HashMap(System.getProperties()), 400);
+	private final static ConfigSource SYSTEM_PROPERTY_CONFIG_SOURCE = new DelegateHashMapConfigSource("System properties", new HashMap(System.getProperties()), 400);
     private final static ConfigSource ENV_VARIABLE_CONFIG_SOURCE = new DelegateHashMapConfigSource("Environment variables", System.getenv(), 300);
     
     private static class DelegateHashMapConfigSource implements ConfigSource {

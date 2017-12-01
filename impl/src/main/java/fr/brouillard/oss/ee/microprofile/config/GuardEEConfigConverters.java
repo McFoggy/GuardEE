@@ -28,31 +28,35 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.eclipse.microprofile.config.spi.Converter;
 
-public class GuardEEConverters {
+public class GuardEEConfigConverters {
     public static Converter<?>[] defaultConverters() {
         return DEFAULT_CONVERTERS;
     }
     
     static <T> Optional<Converter<T>> constructor(Class<T> type) {
+    	Constructor<T> cString = null;
+    	Constructor<T> cCharSequence = null;
+    	
         try {
-            Constructor<T> cString = type.getConstructor(String.class);
-            Constructor<T> cCharSequence = type.getConstructor(CharSequence.class);
-            
+            cString = type.getConstructor(String.class);
+        } catch (NoSuchMethodException e) {}
+        try {
+            cCharSequence = type.getConstructor(CharSequence.class);
+        } catch (NoSuchMethodException e) {}
+         
+    	final Constructor<T> constructor = cString == null ? cCharSequence : cString;
+        if (constructor != null) {
             Converter<T> byConstructor = new Converter<T>() {
                 @Override
                 public T convert(String value) {
                     try {
-                        if (cString != null) {
-                            return cString.newInstance(value);
-                        }
-                        return cCharSequence.newInstance(value);
+                    	return constructor.newInstance(value);
                     } catch (Exception e) {
                         String msg = String.format(
                                 "cannot build a %s instance by calling constructor %s(%s)"
@@ -66,7 +70,6 @@ public class GuardEEConverters {
             };
             
             return Optional.of(byConstructor);
-        } catch (NoSuchMethodException e) {
         }
         
         return Optional.empty();
@@ -77,40 +80,46 @@ public class GuardEEConverters {
     }
 
     private static <T> Optional<Converter<T>> getConverterByMethodInvocation(Class<T> type, String methodName) {
+    	Method mValueOfString = null;
+    	Method mValueOfCharSequence = null;
         try {
-            Method mValueOfString = type.getMethod(methodName, String.class);
-            Method mValueOfCharSequence = type.getMethod(methodName, CharSequence.class);
-
-            Method builder = null;
-
-            if (mValueOfString != null && mValueOfString.getReturnType().equals(type)) {
-                builder = mValueOfCharSequence;
-            } else if (mValueOfCharSequence != null && mValueOfCharSequence.getReturnType().equals(type)) {
-                builder = mValueOfCharSequence;
-            }
-            
-            if (builder != null) {
-                Method effectiveBuilder = builder;
-                Converter<T> byValueOf = new Converter<T>() {
-                    @Override
-                    public T convert(String value) {
-                        try {
-                            return (T)effectiveBuilder.invoke(null, value);
-                        } catch (Exception e) {
-                            String msg = String.format(
-                                    "cannot build a %s instance by calling %s.%s(%s)"
-                                    , type.getName()
-                                    , type.getSimpleName()
-                                    , methodName
-                                    , value
-                            );
-                            throw new IllegalArgumentException(msg);
-                        }
-                    }
-                };
-                return Optional.of(byValueOf);
-            }
+            mValueOfString = type.getMethod(methodName, String.class);
         } catch (NoSuchMethodException e) {
+        }
+        try {
+            mValueOfCharSequence = type.getMethod(methodName, CharSequence.class);
+        } catch (NoSuchMethodException e) {
+        }
+
+        Method builder = null;
+
+        if (mValueOfString != null && mValueOfString.getReturnType().equals(type)) {
+            builder = mValueOfCharSequence;
+        } else if (mValueOfCharSequence != null && mValueOfCharSequence.getReturnType().equals(type)) {
+            builder = mValueOfCharSequence;
+        }
+        
+        if (builder != null) {
+            Method effectiveBuilder = builder;
+            Converter<T> byValueOf = new Converter<T>() {
+                @SuppressWarnings("unchecked")
+				@Override
+                public T convert(String value) {
+                    try {
+                        return (T)effectiveBuilder.invoke(null, value);
+                    } catch (Exception e) {
+                        String msg = String.format(
+                                "cannot build a %s instance by calling %s.%s(%s)"
+                                , type.getName()
+                                , type.getSimpleName()
+                                , methodName
+                                , value
+                        );
+                        throw new IllegalArgumentException(msg);
+                    }
+                }
+            };
+            return Optional.of(byValueOf);
         }
 
         return Optional.empty();
@@ -124,7 +133,8 @@ public class GuardEEConverters {
         if (type.isEnum()) {
             final List<T> enumsValues = Arrays.asList(type.getEnumConstants());
             Converter<T> enumConverter = new Converter<T>() {
-                @Override
+                @SuppressWarnings("unchecked")
+				@Override
                 public T convert(String value) {
                     T t = (T)enumsValues
                             .stream()

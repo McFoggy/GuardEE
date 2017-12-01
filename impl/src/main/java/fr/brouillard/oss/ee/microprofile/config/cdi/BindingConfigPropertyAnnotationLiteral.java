@@ -17,17 +17,23 @@ package fr.brouillard.oss.ee.microprofile.config.cdi;
 
 import javax.enterprise.util.AnnotationLiteral;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
 @SuppressWarnings("serial")
-public class ConfigPropertyAnnotationLiteral extends AnnotationLiteral<ConfigProperty> implements ConfigProperty {
+public class BindingConfigPropertyAnnotationLiteral extends AnnotationLiteral<BindingConfigProperty> implements BindingConfigProperty {
+	private String name;
+	private String defaultValue;
+
+	public BindingConfigPropertyAnnotationLiteral(String key, String defaultValue) {
+		this.name = key;
+		this.defaultValue = defaultValue;
+	}
+	
     @Override
     public String name() {
-        return "";
+        return name;
     }
 
     @Override
     public String defaultValue() {
-        return "";
+        return defaultValue;
     }
 }

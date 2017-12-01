@@ -32,12 +32,10 @@ import org.eclipse.microprofile.config.spi.Converter;
 import fr.brouillard.oss.ee.microprofile.misc.Reflections;
 
 public class GuardEEConfig implements Config {
-    private final ClassLoader loader;
     private final List<ConfigSource> sources;
     private final Map<Type, Converter<?>> convertersByType;
 
-    public GuardEEConfig(ClassLoader loader, List<ConfigSource> sources, List<Converter<?>> converters) {
-        this.loader = loader;
+    public GuardEEConfig(List<ConfigSource> sources, List<Converter<?>> converters) {
         this.sources = sources;
         this.convertersByType = new HashMap<>();
         registerConverters(converters);
@@ -56,12 +54,13 @@ public class GuardEEConfig implements Config {
                 .orElseThrow(() -> new NoSuchElementException("no property " + propertyName + " found"));
     }
 
-    public <T> T convert(String value, Class<T> propertyType) {
+    @SuppressWarnings("unchecked")
+	public <T> T convert(String value, Class<T> propertyType) {
         if (String.class == propertyType) {
             return (T)value;
         }
         
-        Converter<?> converter = convertersByType.computeIfAbsent(propertyType, (t) -> GuardEEConverters.forType(propertyType));
+        Converter<?> converter = convertersByType.computeIfAbsent(propertyType, (t) -> GuardEEConfigConverters.forType(propertyType));
         return (T)converter.convert(value);
     }
 

@@ -38,22 +38,34 @@ import javax.enterprise.inject.spi.Producer;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import fr.brouillard.oss.ee.microprofile.config.GuardEEConfigurator;
+
 public class GuardEEConfigExtension implements Extension {
-    private Set<InjectionPoint> injectionPoints = new HashSet<>();
+    private Set<Beanable> toRegisterBeans = new HashSet<>();
     
     public void processInjectionPoints(@Observes ProcessInjectionPoint<?, ?> pip) {
         InjectionPoint ip = pip.getInjectionPoint();
 
         if (ip.getAnnotated().isAnnotationPresent(ConfigProperty.class)) {
             if (isNotAProducedType(ip.getType())) {
-                injectionPoints.add(ip);
+            	ConfigProperty cp = ip.getAnnotated().getAnnotation(ConfigProperty.class);
+            	
+            	String keyName = GuardEEConfigurator.keyName(ip, cp.name());
+            	String defaultValue = cp.defaultValue();
+            	BindingConfigProperty bcp = new BindingConfigPropertyAnnotationLiteral(keyName, defaultValue);
+            	
+            	InjectionPoint wrappedIpWithBindingConfigProperty = InjectionPointWrapper.create().addQualifiers(bcp).wrap(ip);
+            	pip.setInjectionPoint(wrappedIpWithBindingConfigProperty);
+            	
+            	toRegisterBeans.add(new Beanable(ip.getType(), bcp));
             }
         }
     }
     
-    public void registerConfigPropertyBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
-        for (InjectionPoint ip : injectionPoints) {
-            abd.addBean(new ConfigPropertyBean<>(bm, (Class)ip.getType()));
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	public void registerConfigPropertyBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
+        for (Beanable bean: toRegisterBeans) {
+            abd.addBean(new BindingConfigPropertyBean<>((Class)bean.type, bean.bcp));
         }
     }
 
@@ -82,4 +94,53 @@ public class GuardEEConfigExtension implements Extension {
                 && ipType != Producer.class
                 ;
     }
+
+    /*
+     * Simple container class 
+     */
+	private static class Beanable {
+		private Type type;
+		private BindingConfigProperty bcp;
+
+		public Beanable(Type t, BindingConfigProperty bcp) {
+			this.bcp = bcp;
+			this.type = t;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((type == null) ? 0 : type.getTypeName().hashCode());
+			result = prime * result + ((bcp == null) ? 0 : bcp.name().hashCode());
+			result = prime * result + ((bcp == null) ? 0 : bcp.defaultValue().hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Beanable other = (Beanable) obj;
+			if (bcp == null) {
+				if (other.bcp != null)
+					return false;
+			} else {
+				if (!bcp.name().equals(other.bcp.name()))
+					return false;
+				else if (!bcp.defaultValue().equals(other.bcp.defaultValue()))
+					return false;
+			}
+			if (type == null) {
+				if (other.type != null)
+					return false;
+			} else if (!type.getTypeName().equals(other.type.getTypeName()))
+				return false;
+			return true;
+		}
+	}
 }

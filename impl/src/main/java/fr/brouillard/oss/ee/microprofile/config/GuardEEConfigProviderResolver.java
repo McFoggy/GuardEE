@@ -18,7 +18,6 @@ package fr.brouillard.oss.ee.microprofile.config;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
@@ -45,7 +44,7 @@ public class GuardEEConfigProviderResolver extends ConfigProviderResolver {
     @Override
     public ConfigBuilder getBuilder() {
         GuardEEConfigBuilder builder = new GuardEEConfigBuilder();
-        builder.withConverters(GuardEEConverters.defaultConverters());
+        builder.withConverters(GuardEEConfigConverters.defaultConverters());
         return builder;
     }
 

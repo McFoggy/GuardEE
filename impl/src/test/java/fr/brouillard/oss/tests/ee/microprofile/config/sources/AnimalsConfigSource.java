@@ -13,33 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fr.brouillard.oss.tests.ee.microprofile.config;
+package fr.brouillard.oss.tests.ee.microprofile.config.sources;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
-public class SimpleConfigSource implements ConfigSource {
+public class AnimalsConfigSource implements ConfigSource {
 
     private Map<String, String> properties;
 
-    public SimpleConfigSource() {
+    public AnimalsConfigSource() {
         properties = new HashMap<>();
-        properties.put("simple.string.property", "text");
-        properties.put("simple.boolean.property", "true");
-        properties.put("simple.int.property", "5");
-        properties.put("simple.long.property", "10");
-        properties.put("simple.float.property", "10.5");
-        properties.put("simple.double.property", "11.5");
-        properties.put("simple.duration.property", "P2DT3H4M");
-        properties.put("simple.localtime.property", "10:15:30");
-        properties.put("simple.localdate.property", "2017-11-29");
-        properties.put("simple.localdatetime.property", "2017-11-29T10:15:30");
-        properties.put("simple.offsetdatetime.property", "2017-11-29T10:15:30+01:00");
-        properties.put("simple.offsettime.property", "10:15:30+01:00");
-        properties.put("simple.instant.property", "2017-11-29T09:15:30Z");
-        properties.put("simple.url.property", "http://microprofile.io");
+        properties.put("dog.rahan", "rahan");
+        properties.put("dog.prolo", "prolo");
+        properties.put("cat.hercule", "hercule");
+        properties.put("cat.garfield", "garfield");
     }
 
     @Override

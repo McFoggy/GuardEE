@@ -15,19 +15,23 @@
  */
 package fr.brouillard.oss.ee.microprofile.config.cdi;
 
-import javax.enterprise.util.AnnotationLiteral;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import javax.inject.Qualifier;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@SuppressWarnings("serial")
-public class ConfigPropertyAnnotationLiteral extends AnnotationLiteral<ConfigProperty> implements ConfigProperty {
-    @Override
-    public String name() {
-        return "";
-    }
-
-    @Override
-    public String defaultValue() {
-        return "";
-    }
+@Qualifier
+@Retention(RUNTIME)
+@Target({METHOD, FIELD, PARAMETER, TYPE})
+public @interface BindingConfigProperty {
+	String name() default "";
+	String defaultValue() default ConfigProperty.UNCONFIGURED_VALUE;
 }

@@ -18,15 +18,15 @@ package fr.brouillard.oss.tests.ee.microprofile.config;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import fr.brouillard.oss.ee.microprofile.config.GuardEEConverters;
+import fr.brouillard.oss.ee.microprofile.config.GuardEEConfigConverters;
 
-public class EnumGuardEEConvertersTest {
+public class EnumGuardEEConfigConvertersTest {
     @Test
     public void can_convert_directions() {
         String[] expected = new String[] {"NORTH", "SOUTH", "EAST", "WEST"};
 
         for (String directionString : expected) {
-            DIRECTIONS converted = GuardEEConverters.asEnum(DIRECTIONS.class)
+            DIRECTIONS converted = GuardEEConfigConverters.asEnum(DIRECTIONS.class)
                     .get()
                     .convert(directionString);
             Assert.assertEquals(converted, DIRECTIONS.valueOf(directionString));
@@ -35,7 +35,7 @@ public class EnumGuardEEConvertersTest {
 
     @Test(expectedExceptions = {IllegalArgumentException.class})
     public void cannot_convert_non_existing_directions() {
-        GuardEEConverters.asEnum(DIRECTIONS.class)
+        GuardEEConfigConverters.asEnum(DIRECTIONS.class)
                 .get()
                 .convert("LOST");
     }

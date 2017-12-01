@@ -35,7 +35,6 @@ import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.testng.Arquillian;
-import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -44,13 +43,14 @@ import org.testng.annotations.Test;
 
 import fr.brouillard.oss.ee.microprofile.config.GuardEEConfigProviderResolver;
 import fr.brouillard.oss.ee.microprofile.config.cdi.GuardEEConfigExtension;
+import fr.brouillard.oss.tests.ee.microprofile.config.sources.SimpleConfigSource;
 
-public class ConfigInjectionTest extends Arquillian {
+public class ConfigSimpleInjectionTest extends Arquillian {
     @Deployment
-    public static Archive createDeployment() {
+    public static WebArchive createDeployment() {
         return ShrinkWrap.create(WebArchive.class)
                 .addClasses(
-                        ConfigInjectionTest.class
+                        ConfigSimpleInjectionTest.class
                         , SimpleConfigSource.class
                         , InjectionSimpleJavaTypesBean.class
                         , InjectionURLJavaTypeBean.class
@@ -119,7 +119,8 @@ public class ConfigInjectionTest extends Arquillian {
         Assert.assertEquals(bean.urlObjProperty.toString(), "http://microprofile.io");
     }
 
-    private <T> T getBeanOfType(Class<T> beanClass) {
+    @SuppressWarnings("unchecked")
+	private <T> T getBeanOfType(Class<T> beanClass) {
         Bean<T> bean = (Bean<T>) bm.resolve(bm.getBeans(beanClass));
         T beanInstance = bm.getContext(bean.getScope()).get(bean, bm.createCreationalContext(bean));
 

@@ -87,10 +87,11 @@ public class GuardEEConfigBuilder implements ConfigBuilder {
         if (includeDiscoveredConverters) {
             addCustomConverters();
         }
-        return new GuardEEConfig(forClassLoader, sources, converters);
+        return new GuardEEConfig(sources, converters);
     }
 
-    private void addCustomConverters() {
+    @SuppressWarnings("rawtypes")
+	private void addCustomConverters() {
         ServiceLoader<Converter> converters = ServiceLoader.load(Converter.class);
         for (Converter converter : converters) {
             this.converters.add(converter);
