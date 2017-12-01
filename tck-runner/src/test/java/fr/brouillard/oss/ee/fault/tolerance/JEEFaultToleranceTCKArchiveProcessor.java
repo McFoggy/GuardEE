@@ -43,7 +43,10 @@ public class JEEFaultToleranceTCKArchiveProcessor implements ApplicationArchiveP
 
                 File[] jeeImplAndDeps = Maven.resolver().resolve(gav).withTransitivity().asFile();
                 war.addAsLibraries(jeeImplAndDeps);
-                
+
+                File[] hamcrestDeps = Maven.resolver().resolve("org.hamcrest:hamcrest-all:1.3").withTransitivity().asFile();
+                war.addAsLibraries(hamcrestDeps);
+
                 if (Boolean.getBoolean("arquillian.archive.add.beans.xml")) {
                     war.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
                 }
