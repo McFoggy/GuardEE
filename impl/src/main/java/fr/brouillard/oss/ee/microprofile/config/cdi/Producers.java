@@ -26,6 +26,8 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
@@ -145,11 +147,28 @@ public class Producers {
 
         return Optional.empty();
     }
+//
+//    @SuppressWarnings("unchecked")
+//	@ConfigProperty
+//    @Produces
+//    public <T> Provider<T> produceProvider(InjectionPoint ip) {
+//        Annotated annotated = ip.getAnnotated();
+//        Type baseType = annotated.getBaseType();
+//
+//        if (baseType instanceof ParameterizedType) {
+//            ParameterizedType pt = (ParameterizedType) baseType;
+//            Type expectedType = pt.getActualTypeArguments()[0];
+//            Class<T> type = (Class<T>) expectedType;
+//            return () -> GuardEEConfigurator.getConfiguredValue(ip, type);
+//        }
+//
+//        return () -> null;
+//    }
 
     @SuppressWarnings("unchecked")
 	@ConfigProperty
     @Produces
-    public <T> Provider<T> produceProvider(InjectionPoint ip) {
+    public <T> Supplier<T> produceSupplier(InjectionPoint ip) {
         Annotated annotated = ip.getAnnotated();
         Type baseType = annotated.getBaseType();
 

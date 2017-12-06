@@ -20,65 +20,30 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
+import fr.brouillard.oss.ee.microprofile.config.sources.DelegateHashMapConfigSource;
+
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class GuardEEConfigSources {
+
+    /**
+     * Default value for non specified ordinal, see http://microprofile.io/project/eclipse/microprofile-config/spec/src/main/asciidoc/configsources.asciidoc
+     */
+    public static final int DEFAULT_CONFIG_SOURCE_ORDINAL = 100;
+
     public static Collection<ConfigSource> defaultConfigSources() {
-        return DEFAULTS;
-    }
-    
-    private final static Collection<ConfigSource> DEFAULTS = new ArrayList<>();
-
-    public static final String CONFIG_ORDINAL = "config_ordinal";
-    
-	private final static ConfigSource SYSTEM_PROPERTY_CONFIG_SOURCE = new DelegateHashMapConfigSource("System properties", new HashMap(System.getProperties()), 400);
-    private final static ConfigSource ENV_VARIABLE_CONFIG_SOURCE = new DelegateHashMapConfigSource("Environment variables", System.getenv(), 300);
-    
-    private static class DelegateHashMapConfigSource implements ConfigSource {
-        private String name;
-        private Map<String, String> delegate;
-        private int defaultOrdinal;
-
-        private DelegateHashMapConfigSource(String name, Map<String, String> delegate, int defaultOrdinal) {
-            this.name = name;
-            this.delegate = delegate;
-            this.defaultOrdinal = defaultOrdinal;
-        }
-
-        @Override
-        public Map<String, String> getProperties() {
-            return delegate;
-        }
-
-        @Override
-        public String getValue(String propertyName) {
-            return delegate.get(propertyName);
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public int getOrdinal() {
-            try {
-                return Integer.decode(delegate.get(CONFIG_ORDINAL));
-            } catch (Exception ex) {
-                return defaultOrdinal;
-            }
-        }
-    }
-    
-    static {
+    	Collection<ConfigSource> sources = new ArrayList<>();
+    	
+    	// Let's add first the sources found from standard manifest entries
         try {
-            Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(" META-INF/microprofile-config.properties");
+            Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("META-INF/microprofile-config.properties");
 
             int i = 0;
             while (resources.hasMoreElements()) {
@@ -88,11 +53,27 @@ public class GuardEEConfigSources {
                     p.load(is);
                 }
 
-                DEFAULTS.add(new DelegateHashMapConfigSource("URL-" + i, new HashMap(p), 100));
+                int ordinal = DEFAULT_CONFIG_SOURCE_ORDINAL;
+                String ordinalString = p.getProperty(CONFIG_ORDINAL);
+                if (ordinalString != null) {
+                    try {
+                        ordinal = Integer.parseInt(ordinalString);
+                    } catch (NumberFormatException nfe) {}
+                }
+                sources.add(new DelegateHashMapConfigSource("URL-" + i, new HashMap(p), ordinal));
             }
-        } catch (IOException e) {
-        }
-        DEFAULTS.add(SYSTEM_PROPERTY_CONFIG_SOURCE);
-        DEFAULTS.add(ENV_VARIABLE_CONFIG_SOURCE);
+        } catch (IOException e) {}
+        
+        // then add the global ones
+        sources.add(SYSTEM_PROPERTY_CONFIG_SOURCE);
+        sources.add(ENV_VARIABLE_CONFIG_SOURCE);
+
+        return sources;
     }
+
+	public static final String CONFIG_ORDINAL = "config_ordinal";
+    
+	private final static ConfigSource SYSTEM_PROPERTY_CONFIG_SOURCE = new DelegateHashMapConfigSource("System properties", new HashMap(System.getProperties()), 400);
+    private final static ConfigSource ENV_VARIABLE_CONFIG_SOURCE = new DelegateHashMapConfigSource("Environment variables", System.getenv(), 300);
+
 }

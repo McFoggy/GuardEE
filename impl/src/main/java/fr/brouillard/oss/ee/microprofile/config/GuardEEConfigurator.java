@@ -17,6 +17,7 @@ package fr.brouillard.oss.ee.microprofile.config;
 
 import java.util.Optional;
 
+import javax.enterprise.inject.spi.AnnotatedField;
 import javax.enterprise.inject.spi.InjectionPoint;
 
 import org.eclipse.microprofile.config.Config;
@@ -28,6 +29,13 @@ public class GuardEEConfigurator {
         if (!configPropertyName.isEmpty()) {
             return configPropertyName;
         }
+        
+        if (ip.getAnnotated() instanceof AnnotatedField) {
+        	AnnotatedField af = (AnnotatedField)ip.getAnnotated();
+        	String className = af.getDeclaringType().getJavaClass().getName().replace('$', '.');
+        	String fieldName = af.getJavaMember().getName();
+			return className + "." + fieldName;
+		}
         
         // TODO build default key from injection point
         return "";

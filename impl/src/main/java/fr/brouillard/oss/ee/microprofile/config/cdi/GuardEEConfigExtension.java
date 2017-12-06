@@ -15,6 +15,7 @@
  */
 package fr.brouillard.oss.ee.microprofile.config.cdi;
 
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.time.Duration;
@@ -24,9 +25,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
@@ -35,6 +39,7 @@ import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.ProcessInjectionPoint;
 import javax.enterprise.inject.spi.Producer;
+import javax.inject.Provider;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -47,7 +52,7 @@ public class GuardEEConfigExtension implements Extension {
         InjectionPoint ip = pip.getInjectionPoint();
 
         if (ip.getAnnotated().isAnnotationPresent(ConfigProperty.class)) {
-            if (isNotAProducedType(ip.getType())) {
+        	if (!isAProducedType(ip.getType())) {
             	ConfigProperty cp = ip.getAnnotated().getAnnotation(ConfigProperty.class);
             	
             	String keyName = GuardEEConfigurator.keyName(ip, cp.name());
@@ -58,7 +63,7 @@ public class GuardEEConfigExtension implements Extension {
             	pip.setInjectionPoint(wrappedIpWithBindingConfigProperty);
             	
             	toRegisterBeans.add(new Beanable(ip.getType(), bcp));
-            }
+        	}
         }
     }
     
@@ -69,8 +74,62 @@ public class GuardEEConfigExtension implements Extension {
         }
     }
 
+    private boolean isAProducedType(Type ipType) {
+    	if (ipType instanceof Class) {
+    		return isASimpleProducedType(ipType);
+    	} else if (ipType instanceof ParameterizedType) {
+			ParameterizedType pType = (ParameterizedType) ipType;
+			String rawTypeName = pType.getRawType().getTypeName();
+			
+			List<String> handledBuilderClasses = Arrays.asList(
+					Optional.class.getName()
+					, Provider.class.getName()
+					, Supplier.class.getName()
+					);
+			
+			return handledBuilderClasses.contains(rawTypeName);
+    	}
+    	
+    	return false;
+    }
+    private boolean isASimpleProducedType(Type ipType) {
+        return ipType == String.class 
+                || ipType == Boolean.class
+                || ipType == Boolean.TYPE
+                || ipType == Integer.class
+                || ipType == Integer.TYPE
+                || ipType == Long.class
+                || ipType == Long.TYPE
+                || ipType == Float.class
+                || ipType == Float.TYPE
+                || ipType == Double.class
+                || ipType == Double.TYPE
+                || ipType == Duration.class
+                || ipType == LocalTime.class
+                || ipType == LocalDate.class
+                || ipType == LocalDateTime.class
+                || ipType == OffsetDateTime.class
+                || ipType == OffsetTime.class
+                || ipType == Instant.class
+                || ipType == URL.class;
+    }
+
+    
     private boolean isNotAProducedType(Type ipType) {
         // Should be different from all types produced by Producers#XXXX
+    	if (ipType instanceof ParameterizedType) {
+			ParameterizedType pType = (ParameterizedType) ipType;
+		} else {
+			return isNotASimpleProducedType(ipType);
+		}
+    	
+        return isNotASimpleProducedType(ipType)
+                && ipType != Optional.class
+                && ipType != Producer.class
+                ;
+    }
+    
+    private boolean isNotASimpleProducedType(Type ipType) {
         return ipType != String.class 
                 && ipType != Boolean.class
                 && ipType != Boolean.TYPE
@@ -89,10 +148,7 @@ public class GuardEEConfigExtension implements Extension {
                 && ipType != OffsetDateTime.class
                 && ipType != OffsetTime.class
                 && ipType != Instant.class
-                && ipType != URL.class
-                && ipType != Optional.class
-                && ipType != Producer.class
-                ;
+                && ipType != URL.class;
     }
 
     /*
