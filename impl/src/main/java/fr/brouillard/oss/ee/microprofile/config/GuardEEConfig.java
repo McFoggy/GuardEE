@@ -17,6 +17,8 @@ package fr.brouillard.oss.ee.microprofile.config;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,9 +38,11 @@ public class GuardEEConfig implements Config {
     private final Map<Type, Converter<?>> convertersByType;
 
     public GuardEEConfig(List<ConfigSource> sources, List<Converter<?>> converters) {
-        this.sources = sources;
+        this.sources = new ArrayList<>(sources);
         this.convertersByType = new HashMap<>();
+        
         registerConverters(converters);
+        Collections.sort(this.sources, Comparator.comparing(ConfigSource::getOrdinal).reversed());
     }
 
     private void registerConverters(List<Converter<?>> converters) {
