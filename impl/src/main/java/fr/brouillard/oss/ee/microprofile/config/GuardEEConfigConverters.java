@@ -45,10 +45,10 @@ public class GuardEEConfigConverters {
     	Constructor<T> cCharSequence = null;
     	
         try {
-            cString = type.getConstructor(String.class);
+            cString = type.getDeclaredConstructor(String.class);
         } catch (NoSuchMethodException e) {}
         try {
-            cCharSequence = type.getConstructor(CharSequence.class);
+            cCharSequence = type.getDeclaredConstructor(CharSequence.class);
         } catch (NoSuchMethodException e) {}
          
     	final Constructor<T> constructor = cString == null ? cCharSequence : cString;
@@ -57,6 +57,7 @@ public class GuardEEConfigConverters {
                 @Override
                 public T convert(String value) {
                     try {
+                        constructor.setAccessible(true);
                     	return constructor.newInstance(value);
                     } catch (Exception e) {
                         String msg = String.format(
@@ -84,18 +85,18 @@ public class GuardEEConfigConverters {
     	Method mValueOfString = null;
     	Method mValueOfCharSequence = null;
         try {
-            mValueOfString = type.getMethod(methodName, String.class);
+            mValueOfString = type.getDeclaredMethod(methodName, String.class);
         } catch (NoSuchMethodException e) {
         }
         try {
-            mValueOfCharSequence = type.getMethod(methodName, CharSequence.class);
+            mValueOfCharSequence = type.getDeclaredMethod(methodName, CharSequence.class);
         } catch (NoSuchMethodException e) {
         }
 
         Method builder = null;
 
         if (mValueOfString != null && mValueOfString.getReturnType().equals(type)) {
-            builder = mValueOfCharSequence;
+            builder = mValueOfString;
         } else if (mValueOfCharSequence != null && mValueOfCharSequence.getReturnType().equals(type)) {
             builder = mValueOfCharSequence;
         }
@@ -107,6 +108,7 @@ public class GuardEEConfigConverters {
 				@Override
                 public T convert(String value) {
                     try {
+                        effectiveBuilder.setAccessible(true);
                         return (T)effectiveBuilder.invoke(null, value);
                     } catch (Exception e) {
                         String msg = String.format(
