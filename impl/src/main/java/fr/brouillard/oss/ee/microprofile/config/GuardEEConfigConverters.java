@@ -160,125 +160,198 @@ public class GuardEEConfigConverters {
     }
     
     public static <T> Converter<T> forType(Class<T> type) {
+        if (type.isPrimitive()) {
+            return getPrimitiveConverter(type);
+        }
+        
         return Stream.of(constructor(type), valueOf(type), parse(type), asEnum(type))
                 .filter(Optional::isPresent)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("no converter for type: " + type))
                 .get();
     }
-    
-    private final static Converter<Boolean> BOOLEAN_CONVERTER = (Converter<Boolean>&Serializable)value -> {
-        if (value == null) {
+
+    private static <T> Converter<T> getPrimitiveConverter(Class<T> type) {
+        if (Boolean.TYPE.equals(type)) {
+            return (Converter<T>)BOOLEAN_CONVERTER;
+        } else if (Integer.TYPE.equals(type)) {
+            return (Converter<T>)INTEGER_CONVERTER;
+        } else if (Long.TYPE.equals(type)) {
+            return (Converter<T>)LONG_CONVERTER;
+        } else if (Float.TYPE.equals(type)) {
+            return (Converter<T>)FLOAT_CONVERTER;
+        } else if (Double.TYPE.equals(type)) {
+            return (Converter<T>)DOUBLE_CONVERTER;
+        }
+        
+        throw new IllegalStateException(String.format("primitive type %s has no associated Converter"));
+    }
+
+    private final static class BooleanConverter implements Converter<Boolean>, Serializable {
+        @Override
+        public Boolean convert(String value) {
+            if (value == null) {
+                return Boolean.FALSE;
+            }
+
+            String upper = value.toUpperCase();
+            if ("TRUE".equals(upper)
+                    || "1".equals(upper)
+                    || "Y".equals(upper)
+                    || "YES".equals(upper)
+                    || "ON".equals(upper)
+                    ) {
+                return Boolean.TRUE;
+            }
+
             return Boolean.FALSE;
         }
-        
-        String upper = value.toUpperCase();
-        if ("TRUE".equals(upper)
-                || "1".equals(upper)
-                || "Y".equals(upper)
-                || "YES".equals(upper)
-        ) {
-            return Boolean.TRUE;
-        }
-        
-        return Boolean.FALSE;
-    };
-    
-    private final static Converter<Integer> INTEGER_CONVERTER = (Converter<Integer>&Serializable)value -> {
-        try {
-            return Integer.valueOf(value);
-        } catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in an Integer value", value));
-        }
-    };
-    
-    private final static Converter<Long> LONG_CONVERTER = (Converter<Long>&Serializable)value -> {
-        try {
-            return Long.valueOf(value);
-        } catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a Long value", value));
-        }
-    };
+    }
+    private final static Converter<Boolean> BOOLEAN_CONVERTER = new BooleanConverter();
 
-    private final static Converter<Float> FLOAT_CONVERTER = (Converter<Float>&Serializable)value -> {
-        try {
-            return Float.valueOf(value);
-        } catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a Float value", value));
+    private final static class IntegerConverter implements Converter<Integer>, Serializable {
+        @Override
+        public Integer convert(String value) {
+            try {
+                return Integer.valueOf(value);
+            } catch (NumberFormatException nfe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in an Integer value", value));
+            }
         }
-    };
+    }
+    private final static Converter<Integer> INTEGER_CONVERTER = new IntegerConverter();
 
-    private final static Converter<Double> DOUBLE_CONVERTER = (Converter<Double>&Serializable)value -> {
-        try {
-            return Double.valueOf(value);
-        } catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a Double value", value));
+    private final static class LongConverter implements Converter<Long>, Serializable {
+        @Override
+        public Long convert(String value) {
+            try {
+                return Long.valueOf(value);
+            } catch (NumberFormatException nfe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a Long value", value));
+            }
         }
-    };
-    
-    private final static Converter<Duration> DURATION_CONVERTER = (Converter<Duration>&Serializable)value -> {
-        try {
-            return Duration.parse(value);
-        } catch (DateTimeParseException dtpe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a Duration value", value));
-        }
-    };
+    }
+    private final static Converter<Long> LONG_CONVERTER = new LongConverter();
 
-    private final static Converter<LocalTime> LOCALTIME_CONVERTER = (Converter<LocalTime>&Serializable)value -> {
-        try {
-            return LocalTime.parse(value);
-        } catch (DateTimeParseException dtpe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a LocalTime value", value));
+    private final static class FloatConverter implements Converter<Float>, Serializable {
+        @Override
+        public Float convert(String value) {
+            try {
+                return Float.valueOf(value);
+            } catch (NumberFormatException nfe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a Float value", value));
+            }
         }
-    };
+    }
+    private final static Converter<Float> FLOAT_CONVERTER = new FloatConverter();
 
-    private final static Converter<LocalDateTime> LOCALDATETIME_CONVERTER = (Converter<LocalDateTime>&Serializable)value -> {
-        try {
-            return LocalDateTime.parse(value);
-        } catch (DateTimeParseException dtpe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a LocalDateTime value", value));
+    private final static class DoubleConverter implements Converter<Double>, Serializable {
+        @Override
+        public Double convert(String value) {
+            try {
+                return Double.valueOf(value);
+            } catch (NumberFormatException nfe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a Double value", value));
+            }
         }
-    };
+    }
+    private final static Converter<Double> DOUBLE_CONVERTER = new DoubleConverter();
 
-    private final static Converter<LocalDate> LOCALDATE_CONVERTER = (Converter<LocalDate>&Serializable)value -> {
-        try {
-            return LocalDate.parse(value);
-        } catch (DateTimeParseException dtpe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a LocalDate value", value));
+    private final static class DurationConverter implements Converter<Duration>, Serializable {
+        @Override
+        public Duration convert(String value) {
+            try {
+                return Duration.parse(value);
+            } catch (DateTimeParseException dtpe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a Duration value", value));
+            }
         }
-    };
+    }
+    private final static Converter<Duration> DURATION_CONVERTER = new DurationConverter();
 
-    private final static Converter<OffsetDateTime> OFFSETDATETIME_CONVERTER = (Converter<OffsetDateTime>&Serializable)value -> {
-        try {
-            return OffsetDateTime.parse(value);
-        } catch (DateTimeParseException dtpe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a OffsetDateTime value", value));
+    private final static class LocalTimeConverter implements Converter<LocalTime>, Serializable {
+        @Override
+        public LocalTime convert(String value) {
+            try {
+                return LocalTime.parse(value);
+            } catch (DateTimeParseException dtpe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a LocalTime value", value));
+            }
         }
-    };
+    }
+    private final static Converter<LocalTime> LOCALTIME_CONVERTER = new LocalTimeConverter();
 
-    private final static Converter<OffsetTime> OFFSETTIME_CONVERTER = (Converter<OffsetTime>&Serializable)value -> {
-        try {
-            return OffsetTime.parse(value);
-        } catch (DateTimeParseException dtpe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a OffsetTime value", value));
+    private final static class LocalDateTimeConverter implements Converter<LocalDateTime>, Serializable {
+        @Override
+        public LocalDateTime convert(String value) {
+            try {
+                return LocalDateTime.parse(value);
+            } catch (DateTimeParseException dtpe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a LocalDateTime value", value));
+            }
         }
-    };
+    }
+    private final static Converter<LocalDateTime> LOCALDATETIME_CONVERTER = new LocalDateTimeConverter();
 
-    private final static Converter<Instant> INSTANT_CONVERTER = (Converter<Instant>&Serializable)value -> {
-        try {
-            return Instant.parse(value);
-        } catch (DateTimeParseException dtpe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in a Instant value", value));
+    private final static class LocalDateConverter implements Converter<LocalDate>, Serializable {
+        @Override
+        public LocalDate convert(String value) {
+            try {
+                return LocalDate.parse(value);
+            } catch (DateTimeParseException dtpe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a LocalDate value", value));
+            }
         }
-    };
+    }
+    private final static Converter<LocalDate> LOCALDATE_CONVERTER = new LocalDateConverter();
 
-    private final static Converter<URL> URL_CONVERTER = (Converter<URL>&Serializable)value -> {
-        try {
-            return new URL(value);
-        } catch (MalformedURLException dtpe) {
-            throw new IllegalArgumentException(String.format("cannot convert '%s' in an URL value", value));
+    private final static class OffsetDateTimeConverter implements Converter<OffsetDateTime>, Serializable {
+        @Override
+        public OffsetDateTime convert(String value) {
+            try {
+                return OffsetDateTime.parse(value);
+            } catch (DateTimeParseException dtpe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a OffsetDateTime value", value));
+            }
         }
-    };
+    }
+    private final static Converter<OffsetDateTime> OFFSETDATETIME_CONVERTER = new OffsetDateTimeConverter();
+
+    private final static class OffsetTimeConverter implements Converter<OffsetTime>, Serializable {
+        @Override
+        public OffsetTime convert(String value) {
+            try {
+                return OffsetTime.parse(value);
+            } catch (DateTimeParseException dtpe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a OffsetTime value", value));
+            }
+        }
+    }
+    private final static Converter<OffsetTime> OFFSETTIME_CONVERTER = new OffsetTimeConverter();
+
+    private final static class InstantConverter implements Converter<Instant>, Serializable {
+        @Override
+        public Instant convert(String value) {
+            try {
+                return Instant.parse(value);
+            } catch (DateTimeParseException dtpe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in a Instant value", value));
+            }
+        }
+    }
+    private final static Converter<Instant> INSTANT_CONVERTER = new InstantConverter();
+
+    private final static class URLConverter implements Converter<URL>, Serializable {
+        @Override
+        public URL convert(String value) {
+            try {
+                return new URL(value);
+            } catch (MalformedURLException dtpe) {
+                throw new IllegalArgumentException(String.format("cannot convert '%s' in an URL value", value));
+            }
+        }
+    }
+    private final static Converter<URL> URL_CONVERTER = new URLConverter();
     
     private final static Converter<?>[] DEFAULT_CONVERTERS = new Converter<?>[] {
             BOOLEAN_CONVERTER
