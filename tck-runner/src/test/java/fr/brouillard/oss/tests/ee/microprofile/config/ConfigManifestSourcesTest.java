@@ -55,7 +55,7 @@ public class ConfigManifestSourcesTest extends Arquillian {
                 .addAsLibrary(testJar)
                 ;
         
-        war.as(ZipExporter.class).exportTo(new File("d:/test.war"), true);
+//        war.as(ZipExporter.class).exportTo(new File("d:/test.war"), true);
         return war;
     }
 

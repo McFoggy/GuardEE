@@ -57,7 +57,7 @@ public class SimpleConfigManifestOnServerTest extends Arquillian {
                 .addAsLibraries(resourceOneJar, resourceTwoJar, loaderJar)
                 ;
 
-        war.as(ZipExporter.class).exportTo(new File("d:/test.war"), true);
+//        war.as(ZipExporter.class).exportTo(new File("d:/test.war"), true);
         return war;
     }
     
