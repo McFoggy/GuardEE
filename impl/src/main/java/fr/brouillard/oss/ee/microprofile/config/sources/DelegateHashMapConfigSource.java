@@ -15,11 +15,12 @@
  */
 package fr.brouillard.oss.ee.microprofile.config.sources;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
-public class DelegateHashMapConfigSource implements ConfigSource {
+public class DelegateHashMapConfigSource implements ConfigSource, Serializable {
     private String name;
     private Map<String, String> delegate;
     private int defaultOrdinal;

@@ -15,6 +15,7 @@
  */
 package fr.brouillard.oss.ee.microprofile.config;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +34,7 @@ import org.eclipse.microprofile.config.spi.Converter;
 
 import fr.brouillard.oss.ee.microprofile.misc.Reflections;
 
-public class GuardEEConfig implements Config {
+public class GuardEEConfig implements Config, Serializable {
     private final List<ConfigSource> sources;
     private final Map<Type, Converter<?>> convertersByType;
 
