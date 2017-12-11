@@ -1,8 +1,8 @@
-# GuardEE :: a Microprofile Fault Tolerance for JEE7 [![Build Status](https://travis-ci.org/McFoggy/GuardEE.svg?branch=master)](https://travis-ci.org/McFoggy/GuardEE)  
+# GuardEE :: a Microprofile Fault Tolerance & Config for JEE7 [![Build Status](https://travis-ci.org/McFoggy/GuardEE.svg?branch=master)](https://travis-ci.org/McFoggy/GuardEE)  
 
 ![GuardEE icon](images/guardee_blue_small.png) 
 
-GuardEE is a _no-deps_ portable JEE7 extension implementing [Microprofile Fault Tolerance 1.0 specification](https://projects.eclipse.org/projects/technology.microprofile/releases/fault-tolerance-1.0).
+GuardEE is a _no-deps_ portable JEE7 extension implementing [Microprofile Fault Tolerance 1.0 specification](https://projects.eclipse.org/projects/technology.microprofile/releases/fault-tolerance-1.0) & [Microprofile Config 1.1 specification](https://projects.eclipse.org/projects/technology.microprofile/releases/config-1.1).
 It leverages JEE & CDI features to implement the specification.
 
 > :warning:  
@@ -37,6 +37,8 @@ dependencies {
 
 ## TCK compliance
 
+### Fault Tolerance 
+
 | Mode / Filter | Status |
 | :-- | --- |
 | all TCK | :x: |
@@ -48,6 +50,16 @@ dependencies {
 | Invalid tests | blocked by wildfly/wildfly-arquillian#116 |
 | Bulkhead tests | :heavy_check_mark: |
 | Asynchronous tests | no TCK tests in `1.0` |
+
+### Config 
+
+| Mode / Filter | Status |
+| :-- | --- |
+| all TCK | :x: |
+| valid tests | :heavy_check_mark: |
+| Invalid tests | blocked by wildfly/wildfly-arquillian#116 |
+
+as MP-1.1 TCK release is _faulty_ for remote implementations, the TCK config tests need to integrate [eclipse/microprofile-config#273](https://github.com/eclipse/microprofile-config/issues/273) which corrects [eclipse/microprofile-config#263](https://github.com/eclipse/microprofile-config/issues/263)
 
 ## Build & Test
 
